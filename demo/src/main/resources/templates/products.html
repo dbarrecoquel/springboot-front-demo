@@ -1,45 +1,347 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Products</title>
+    <title>Products - E-Commerce Store</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        /* Banner Styles */
+        .hero-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+            margin-bottom: 40px;
+        }
+        
+        .hero-banner h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .hero-banner p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Navigation Menu */
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        /* Catalog Styles */
+        .catalog-container {
+            background-color: #f8f9fa;
+            padding: 40px 0;
+        }
+
+        .catalog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .product-count {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+
+        .filter-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        /* Product Card Styles */
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: 100%;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+        
+        .product-image {
+            height: 250px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 4rem;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.9);
+            color: #667eea;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        
+        .product-card .card-body {
+            padding: 25px;
+        }
+
+        .product-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+
+        .product-description {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            height: 40px;
+            overflow: hidden;
+        }
+
+        .product-sku {
+            background: #f7fafc;
+            color: #4a5568;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .product-price {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-view {
+            flex: 1;
+            background: #667eea;
+            color: white;
+            border: none;
+        }
+
+        .btn-view:hover {
+            background: #5568d3;
+            color: white;
+        }
+
+        .btn-edit {
+            background: #fbbf24;
+            color: white;
+            border: none;
+        }
+
+        .btn-edit:hover {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            border: none;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 15px;
+        }
+
+        .empty-state i {
+            font-size: 5rem;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1>Products</h1>
-        
-        <div th:if="${message}" class="alert alert-success" role="alert">
-            [[${message}]]
+    <!-- Navigation Menu -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-shop"></i> E-Commerce Store
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/products">
+                            <i class="bi bi-grid"></i> Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-tags"></i> Categories
+                        </a>
+                    </li>
+                 
+                </ul>
+            </div>
         </div>
-        
-        <a th:href="@{/products/new}" class="btn btn-primary mb-3">Add New Product</a>
-        
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>SKU</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="product : ${products}">
-                    <td th:text="${product.id}"></td>
-                    <td th:text="${product.sku}"></td>
-                    <td th:text="${product.name}"></td>
-                    <td th:text="${product.price}"></td>
-                    <td>
-                        <a th:href="@{/products/{id}(id=${product.id})}" class="btn btn-info btn-sm">View</a>
-                        <a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn btn-warning btn-sm">Edit</a>
-                        <a th:href="@{/products/delete/{id}(id=${product.id})}" 
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('Are you sure?')">Delete</a>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    </nav>
+
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+        <div class="container text-center">
+            <h1><i class="bi bi-box-seam"></i> Product Catalog</h1>
+            <p>Discover our amazing collection of products</p>
+        </div>
     </div>
+
+    <!-- Alert Message -->
+    <div class="container" th:if="${message}">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> [[${message}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+
+    <!-- Catalog Section -->
+    <div class="catalog-container">
+        <div class="container">
+            <!-- Catalog Header -->
+            <div class="catalog-header">
+                <div>
+                    <h2>All Products</h2>
+                    <p class="product-count mb-0">
+                        <span th:text="${#lists.size(products)}">0</span> products available
+                    </p>
+                </div>
+                <a th:href="@{/products/new}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-plus-circle"></i> Add New Product
+                </a>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" placeholder="Search products...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select">
+                            <option>All Categories</option>
+                            <option>Electronics</option>
+                            <option>Accessories</option>
+                            <option>Computers</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select">
+                            <option>Sort by: Featured</option>
+                            <option>Price: Low to High</option>
+                            <option>Price: High to Low</option>
+                            <option>Name: A to Z</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="btn-group w-100" role="group">
+                            <button type="button" class="btn btn-outline-secondary active">
+                                <i class="bi bi-grid-3x3-gap"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary">
+                                <i class="bi bi-list"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" th:if="${!#lists.isEmpty(products)}">
+                <div class="col" th:each="product : ${products}">
+                    <div class="card product-card">
+                        <div class="product-image">
+                            <span th:text="${product.name.substring(0, 1)}">P</span>
+                            <div class="product-badge" th:text="${product.sku}">SKU</div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="product-title" th:text="${product.name}">Product Name</h5>
+                            <p class="product-description" th:text="${product.description}">Product description goes here</p>
+                            
+                            <div class="product-price">
+                                $<span th:text="${#numbers.formatDecimal(product.price, 1, 2)}">0.00</span>
+                            </div>
+                            
+                            <div class="product-actions">
+                                <a th:href="@{/products/{id}(id=${product.id})}" class="btn btn-view">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                <a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn btn-edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a th:href="@{/products/delete/{id}(id=${product.id})}"
+                                   class="btn btn-delete"
+                                   onclick="return confirm('Are you sure you want to delete this product?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" th:if="${#lists.isEmpty(products)}">
+                <i class="bi bi-inbox"></i>
+                <h3>No Products Yet</h3>
+                <p class="text-muted">Start adding products to your catalog</p>
+                <a th:href="@{/products/new}" class="btn btn-primary btn-lg mt-3">
+                    <i class="bi bi-plus-circle"></i> Add Your First Product
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">&copy; 2026 E-Commerce Store. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
