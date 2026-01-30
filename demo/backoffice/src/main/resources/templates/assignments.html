@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Assignations Produit-Catégorie - BackOffice</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Include navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="container">
+            <h1><i class="bi bi-link-45deg"></i> Assignations Produit-Catégorie</h1>
+            <p class="mb-0">Gérez les relations entre produits et catégories</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Alert Message -->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> [[${message}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Assignment Form -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Nouvelle Assignation</h5>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/assignments/assign}" method="post">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <label for="productId" class="form-label">Produit</label>
+                            <select class="form-select" id="productId" name="productId" required>
+                                <option value="">-- Sélectionner un produit --</option>
+                                <option th:each="product : ${products}" 
+                                        th:value="${product.id}" 
+                                        th:text="${product.name + ' (' + product.sku + ')'}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="categoryId" class="form-label">Catégorie</label>
+                            <select class="form-select" id="categoryId" name="categoryId" required>
+                                <option value="">-- Sélectionner une catégorie --</option>
+                                <option th:each="category : ${categories}" 
+                                        th:value="${category.id}" 
+                                        th:text="${category.name}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-plus-circle"></i> Assigner
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Assignments Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Assignations Existantes</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Produit</th>
+                                <th>SKU</th>
+                                <th>Catégorie</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="assignment : ${assignments}">
+                                <td th:text="${assignment.id}"></td>
+                                <td th:text="${assignment.product?.name}"></td>
+                                <td><span class="badge bg-secondary" th:text="${assignment.product?.sku}"></span></td>
+                                <td><span class="badge bg-info" th:text="${assignment.category?.name}"></span></td>
+                                <td>
+                                    <a th:href="@{/assignments/remove/{productId}/{categoryId}(productId=${assignment.productId},categoryId=${assignment.categoryId})}"
+                                       class="btn btn-danger btn-sm"
+                                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette assignation ?')">
+                                        <i class="bi bi-trash"></i> Supprimer
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

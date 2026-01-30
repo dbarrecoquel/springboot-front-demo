@@ -1,8 +1,7 @@
-package com.example.demo.controller;
+package com.example.backoffice.controller;
 
-
-import com.example.demo.model.Product;
-import com.example.demo.service.ProductService;
+import com.example.product.model.Product;
+import com.example.product.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

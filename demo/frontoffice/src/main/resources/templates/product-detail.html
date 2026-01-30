@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${product.name} + ' - Product Details'">Product Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .product-detail-image {
+            height: 400px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 8rem;
+            font-weight: bold;
+            border-radius: 15px;
+        }
+        .product-price {
+            font-size: 3rem;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .product-sku {
+            background: #f7fafc;
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="/catalog">
+                <i class="bi bi-shop"></i> E-Commerce Store
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/catalog">Catalog</a></li>
+                <li class="breadcrumb-item active" th:text="${product.name}">Product</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="product-detail-image">
+                    <span th:text="${product.name.substring(0, 1)}">P</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h1 th:text="${product.name}">Product Name</h1>
+                <div class="product-sku mb-3">
+                    <strong>SKU:</strong> <span th:text="${product.sku}">SKU123</span>
+                </div>
+                
+                <div class="product-price mb-4">
+                    $<span th:text="${#numbers.formatDecimal(product.price, 1, 2)}">0.00</span>
+                </div>
+
+                <h5>Description</h5>
+                <p class="text-muted" th:text="${product.description}">Product description goes here</p>
+
+                <div class="mt-4">
+                    <button class="btn btn-primary btn-lg">
+                        <i class="bi bi-cart-plus"></i> Add to Cart
+                    </button>
+                    <a href="/catalog" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Back to Catalog
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

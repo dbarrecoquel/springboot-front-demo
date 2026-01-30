@@ -1,8 +1,9 @@
-package com.example.demo.service;
+package com.example.product.service;
 
 
-import com.example.demo.model.Product;
-import com.example.demo.repository.ProductRepository;
+import com.example.product.model.Product;
+import com.example.product.repository.ProductRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
