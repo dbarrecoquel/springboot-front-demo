@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Formulaire Utilisateur - BackOffice</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <!-- Include navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h3 th:text="${user.id == null} ? 'Créer un Utilisateur' : 'Modifier l\'Utilisateur'">
+                            Formulaire Utilisateur
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="${user.id == null} ? @{/users} : @{/users/update/{id}(id=${user.id})}" 
+                              th:object="${user}" 
+                              method="post">
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="firstName" class="form-label">Prénom *</label>
+                                    <input type="text" class="form-control" id="firstName" 
+                                           th:field="*{firstName}" required>
+                                    <div class="text-danger" th:if="${#fields.hasErrors('firstName')}" 
+                                         th:errors="*{firstName}"></div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="lastName" class="form-label">Nom *</label>
+                                    <input type="text" class="form-control" id="lastName" 
+                                           th:field="*{lastName}" required>
+                                    <div class="text-danger" th:if="${#fields.hasErrors('lastName')}" 
+                                         th:errors="*{lastName}"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="email" 
+                                       th:field="*{email}" required>
+                                <div class="text-danger" th:if="${#fields.hasErrors('email')}" 
+                                     th:errors="*{email}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Téléphone</label>
+                                <input type="tel" class="form-control" id="phone" 
+                                       th:field="*{phone}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label">
+                                    Mot de passe <span th:if="${user.id != null}">(laisser vide pour ne pas modifier)</span>
+                                </label>
+                                <input type="password" class="form-control" id="password" 
+                                       name="password" 
+                                       th:required="${user.id == null}">
+                                <div class="form-text">Minimum 6 caractères</div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="role" class="form-label">Rôle *</label>
+                                    <select class="form-select" id="role" th:field="*{role}" required>
+                                        <option value="ROLE_USER">Utilisateur</option>
+                                        <option value="ROLE_ADMIN">Administrateur</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Statut</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="enabled" 
+                                               th:field="*{enabled}">
+                                        <label class="form-check-label" for="enabled">
+                                            Compte actif
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a th:href="@{/users}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> Annuler
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Enregistrer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

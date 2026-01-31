@@ -26,6 +26,8 @@
         <module>frontoffice</module>
         <module>backoffice</module>
         <module>catalog</module>
+        <module>user</module>
+        <module>address</module>
     </modules>
 
     <!-- Common dependencies for all modules -->

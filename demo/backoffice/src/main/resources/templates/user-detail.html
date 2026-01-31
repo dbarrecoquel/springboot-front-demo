@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Détails Utilisateur - BackOffice</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .address-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        .address-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        .address-card.default {
+            border-color: #28a745;
+            background-color: #f0f9f4;
+        }
+    </style>
+</head>
+<body>
+    <!-- Include navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container mt-5">
+        <!-- Alert Message -->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> [[${message}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row">
+            <!-- User Info -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person-circle"></i> Informations
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-person-circle" style="font-size: 5rem; color: #667eea;"></i>
+                        </div>
+                        <h4 th:text="${user.fullName}">Nom Utilisateur</h4>
+                        <p class="text-muted" th:text="${user.email}">email@example.com</p>
+                        
+                        <div class="mb-3">
+                            <span class="badge" 
+                                  th:classappend="${user.enabled} ? 'bg-success' : 'bg-danger'"
+                                  th:text="${user.enabled} ? 'Actif' : 'Inactif'">
+                            </span>
+                            <span class="badge" 
+                                  th:classappend="${user.role == 'ROLE_ADMIN'} ? 'bg-danger' : 'bg-primary'"
+                                  th:text="${user.role == 'ROLE_ADMIN'} ? 'Admin' : 'User'">
+                            </span>
+                        </div>
+
+                        <dl class="row text-start">
+                            <dt class="col-sm-5">Téléphone:</dt>
+                            <dd class="col-sm-7" th:text="${user.phone != null ? user.phone : 'N/A'}"></dd>
+
+                            <dt class="col-sm-5">Inscrit le:</dt>
+                            <dd class="col-sm-7" th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy')}"></dd>
+
+                            <dt class="col-sm-5">Modifié le:</dt>
+                            <dd class="col-sm-7" th:text="${#temporals.format(user.updatedAt, 'dd/MM/yyyy')}"></dd>
+                        </dl>
+
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/users/edit/{id}(id=${user.id})}" class="btn btn-warning">
+                                <i class="bi bi-pencil"></i> Modifier
+                            </a>
+                            <a th:href="@{/users/toggle-status/{id}(id=${user.id})}" 
+                               class="btn"
+                               th:classappend="${user.enabled} ? 'btn-secondary' : 'btn-success'">
+                                <i class="bi" th:classappend="${user.enabled} ? 'bi-ban' : 'bi-check-circle'"></i>
+                                <span th:text="${user.enabled} ? 'Désactiver' : 'Activer'"></span>
+                            </a>
+                            <a th:href="@{/users/delete/{id}(id=${user.id})}"
+                               class="btn btn-danger"
+                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
+                                <i class="bi bi-trash"></i> Supprimer
+                            </a>
+                            <a th:href="@{/users}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Retour
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Addresses -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-geo-alt-fill"></i> Adresses 
+                            <span class="badge bg-light text-dark" th:text="${#lists.size(addresses)}">0</span>
+                        </h5>
+                        <a th:href="@{/users/{userId}/addresses/new(userId=${user.id})}" 
+                           class="btn btn-light btn-sm">
+                            <i class="bi bi-plus-circle"></i> Ajouter
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(addresses)}" class="text-center py-4">
+                            <i class="bi bi-geo-alt" style="font-size: 3rem; color: #cbd5e0;"></i>
+                            <p class="text-muted mt-3">Aucune adresse enregistrée</p>
+                            <a th:href="@{/users/{userId}/addresses/new(userId=${user.id})}" 
+                               class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Ajouter une adresse
+                            </a>
+                        </div>
+
+                        <div th:each="address : ${addresses}" 
+                             th:classappend="${address.isDefault} ? 'default' : ''" 
+                             class="address-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="bi bi-pin-map-fill"></i> 
+                                        <span th:text="${address.label}">Label</span>
+                                        <span th:if="${address.isDefault}" class="badge bg-success ms-2">
+                                            Par défaut
+                                        </span>
+                                        <span th:if="${address.addressType == 'SHIPPING'}" 
+                                              class="badge bg-primary ms-2">
+                                            Livraison
+                                        </span>
+                                        <span th:if="${address.addressType == 'BILLING'}" 
+                                              class="badge bg-secondary ms-2">
+                                            Facturation
+                                        </span>
+                                    </h6>
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <a th:href="@{/users/{userId}/addresses/edit/{addressId}(userId=${user.id},addressId=${address.id})}" 
+                                       class="btn btn-outline-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a th:href="@{/users/{userId}/addresses/delete/{addressId}(userId=${user.id},addressId=${address.id})}"
+                                       class="btn btn-outline-danger"
+                                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette adresse ?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <p class="mb-0 text-muted" th:text="${address.fullAddress}">Adresse complète</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

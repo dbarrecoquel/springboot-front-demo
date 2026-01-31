@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Adresse Utilisateur - BackOffice</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <!-- Include navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container mt-5 mb-5">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/users">Utilisateurs</a></li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/users/{id}(id=${user.id})}" th:text="${user.fullName}">Utilisateur</a>
+                </li>
+                <li class="breadcrumb-item active">Adresse</li>
+            </ol>
+        </nav>
+
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h3 th:text="${address.id == null} ? 'Ajouter une Adresse' : 'Modifier l\'Adresse'">
+                            Formulaire Adresse
+                        </h3>
+                        <p class="mb-0">Pour : <strong th:text="${user.fullName}"></strong></p>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="${address.id == null} ? @{/users/{userId}/addresses(userId=${user.id})} : @{/users/{userId}/addresses/update/{addressId}(userId=${user.id},addressId=${address.id})}" 
+                              th:object="${address}" 
+                              method="post">
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="label" class="form-label">
+                                        <i class="bi bi-tag"></i> Libellé *
+                                    </label>
+                                    <input type="text" class="form-control" id="label" 
+                                           th:field="*{label}" 
+                                           placeholder="ex: Maison, Bureau..." required>
+                                    <div class="text-danger" th:if="${#fields.hasErrors('label')}" 
+                                         th:errors="*{label}"></div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="addressType" class="form-label">
+                                        <i class="bi bi-box"></i> Type d'adresse *
+                                    </label>
+                                    <select class="form-select" id="addressType" th:field="*{addressType}" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="SHIPPING">Livraison</option>
+                                        <option value="BILLING">Facturation</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="street" class="form-label">
+                                    <i class="bi bi-signpost"></i> Rue *
+                                </label>
+                                <input type="text" class="form-control" id="street" 
+                                       th:field="*{street}" 
+                                       placeholder="Numéro et nom de rue" required>
+                                <div class="text-danger" th:if="${#fields.hasErrors('street')}" 
+                                     th:errors="*{street}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="complement" class="form-label">
+                                    <i class="bi bi-building"></i> Complément d'adresse
+                                </label>
+                                <input type="text" class="form-control" id="complement" 
+                                       th:field="*{complement}" 
+                                       placeholder="Bâtiment, étage, appartement...">
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="postalCode" class="form-label">
+                                        <i class="bi bi-mailbox"></i> Code postal *
+                                    </label>
+                                    <input type="text" class="form-control" id="postalCode" 
+                                           th:field="*{postalCode}" required>
+                                    <div class="text-danger" th:if="${#fields.hasErrors('postalCode')}" 
+                                         th:errors="*{postalCode}"></div>
+                                </div>
+
+                                <div class="col-md-8 mb-3">
+                                    <label for="city" class="form-label">
+                                        <i class="bi bi-geo-alt"></i> Ville *
+                                    </label>
+                                    <input type="text" class="form-control" id="city" 
+                                           th:field="*{city}" required>
+                                    <div class="text-danger" th:if="${#fields.hasErrors('city')}" 
+                                         th:errors="*{city}"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="country" class="form-label">
+                                    <i class="bi bi-flag"></i> Pays *
+                                </label>
+                                <select class="form-select" id="country" th:field="*{country}" required>
+                                    <option value="">-- Sélectionner un pays --</option>
+                                    <option value="France">France</option>
+                                    <option value="Belgique">Belgique</option>
+                                    <option value="Suisse">Suisse</option>
+                                    <option value="Luxembourg">Luxembourg</option>
+                                    <option value="Canada">Canada</option>
+                                </select>
+                                <div class="text-danger" th:if="${#fields.hasErrors('country')}" 
+                                     th:errors="*{country}"></div>
+                            </div>
+
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="isDefault" 
+                                       th:field="*{isDefault}">
+                                <label class="form-check-label" for="isDefault">
+                                    Définir comme adresse par défaut
+                                </label>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a th:href="@{/users/{id}(id=${user.id})}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> Annuler
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Enregistrer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

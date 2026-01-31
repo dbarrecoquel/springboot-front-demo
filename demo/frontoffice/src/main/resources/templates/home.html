@@ -57,54 +57,8 @@
 </head>
 <body>
     <!-- Navigation Menu -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="bi bi-shop"></i> E-Commerce Store
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/">
-                            <i class="bi bi-house"></i> Accueil
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="cataloguesDropdown" role="button" 
-                           data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-grid"></i> Catalogues
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="cataloguesDropdown">
-                            <li th:each="category : ${rootCategories}">
-                                <a class="dropdown-item" th:href="@{/category/{id}(id=${category.id})}" 
-                                   th:text="${category.name}">
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item" href="/catalog">
-                                    <i class="bi bi-grid-3x3"></i> Tous les Produits
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-cart3"></i> Panier
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-person"></i> Mon Compte
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+   <!-- Remplacer la navbar existante par : -->
+<div th:replace="~{fragments/navbar :: navbar(${rootCategories})}"></div>
 
     <!-- Hero Banner -->
     <div class="hero-banner">

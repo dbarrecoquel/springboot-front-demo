@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Mon Profil - E-Commerce Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 0;
+            margin-bottom: 40px;
+        }
+        .profile-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .address-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        .address-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        .address-card.default {
+            border-color: #28a745;
+            background-color: #f0f9f4;
+        }
+        .badge-default {
+            background-color: #28a745;
+        }
+        .badge-shipping {
+            background-color: #007bff;
+        }
+        .badge-billing {
+            background-color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <!-- Include navbar --><!-- Remplacer la navbar existante par : -->
+<div th:replace="~{fragments/navbar :: navbar(${rootCategories})}"></div>
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="container text-center">
+            <div class="mb-3">
+                <i class="bi bi-person-circle" style="font-size: 5rem;"></i>
+            </div>
+            <h1 class="display-4" th:text="${user.fullName}">Nom Utilisateur</h1>
+            <p class="lead" th:text="${user.email}">email@example.com</p>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <!-- Alert Message -->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> [[${message}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 mb-4">
+                <div class="profile-card card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="bi bi-person"></i> Mon Compte
+                        </h5>
+                        <div class="list-group list-group-flush">
+                            <a href="#info" class="list-group-item list-group-item-action active">
+                                <i class="bi bi-info-circle"></i> Informations
+                            </a>
+                            <a href="#addresses" class="list-group-item list-group-item-action">
+                                <i class="bi bi-geo-alt"></i> Mes Adresses
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="bi bi-bag"></i> Mes Commandes
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="bi bi-heart"></i> Mes Favoris
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <!-- User Information -->
+                <div id="info" class="profile-card card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person-lines-fill"></i> Informations Personnelles
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Prénom</label>
+                                <p th:text="${user.firstName}">Prénom</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Nom</label>
+                                <p th:text="${user.lastName}">Nom</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Email</label>
+                                <p th:text="${user.email}">email@example.com</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Téléphone</label>
+                                <p th:text="${user.phone != null ? user.phone : 'Non renseigné'}">Téléphone</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Membre depuis</label>
+                                <p th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy')}">Date</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Modifier mes informations
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Addresses Section -->
+                <div id="addresses" class="profile-card card">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-geo-alt-fill"></i> Mes Adresses
+                        </h5>
+                        <a href="/profile/addresses/new" class="btn btn-light btn-sm">
+                            <i class="bi bi-plus-circle"></i> Ajouter une adresse
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(addresses)}" class="text-center py-4">
+                            <i class="bi bi-geo-alt" style="font-size: 3rem; color: #cbd5e0;"></i>
+                            <p class="text-muted mt-3">Vous n'avez pas encore d'adresse enregistrée</p>
+                            <a href="/profile/addresses/new" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Ajouter ma première adresse
+                            </a>
+                        </div>
+
+                        <div th:each="address : ${addresses}" 
+                             th:classappend="${address.isDefault} ? 'default' : ''" 
+                             class="address-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="bi bi-pin-map-fill"></i> 
+                                        <span th:text="${address.label}">Label</span>
+                                        <span th:if="${address.isDefault}" class="badge badge-default ms-2">
+                                            Par défaut
+                                        </span>
+                                        <span th:if="${address.addressType == 'SHIPPING'}" 
+                                              class="badge badge-shipping ms-2">
+                                            Livraison
+                                        </span>
+                                        <span th:if="${address.addressType == 'BILLING'}" 
+                                              class="badge badge-billing ms-2">
+                                            Facturation
+                                        </span>
+                                    </h6>
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <a th:href="@{/profile/addresses/edit/{id}(id=${address.id})}" 
+                                       class="btn btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a th:href="@{/profile/addresses/delete/{id}(id=${address.id})}"
+                                       class="btn btn-outline-danger"
+                                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette adresse ?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <p class="mb-0 text-muted" th:text="${address.fullAddress}">Adresse complète</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">&copy; 2026 E-Commerce Store. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

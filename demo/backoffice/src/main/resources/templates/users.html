@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Gestion des Utilisateurs - BackOffice</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        .stats-card {
+            border-left: 4px solid #3b82f6;
+        }
+        .user-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-active {
+            background-color: #28a745;
+        }
+        .status-inactive {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <!-- Include navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="container">
+            <h1><i class="bi bi-people"></i> Gestion des Utilisateurs</h1>
+            <p class="mb-0">Gérez les comptes utilisateurs</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Alert Message -->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> [[${message}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Total Utilisateurs</h6>
+                        <h2 th:text="${#lists.size(users)}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Actifs</h6>
+                        <h2 th:text="${#lists.size(users.?[enabled == true])}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Inactifs</h6>
+                        <h2 th:text="${#lists.size(users.?[enabled == false])}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Admins</h6>
+                        <h2 th:text="${#lists.size(users.?[role == 'ROLE_ADMIN'])}">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3>Tous les Utilisateurs</h3>
+            <a th:href="@{/users/new}" class="btn btn-primary btn-lg">
+                <i class="bi bi-person-plus"></i> Ajouter un Utilisateur
+            </a>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Statut</th>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Email</th>
+                                <th>Téléphone</th>
+                                <th>Rôle</th>
+                                <th>Inscrit le</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${users}">
+                                <td>
+                                    <span class="user-status" 
+                                          th:classappend="${user.enabled} ? 'status-active' : 'status-inactive'"
+                                          th:title="${user.enabled} ? 'Actif' : 'Inactif'"></span>
+                                </td>
+                                <td th:text="${user.id}"></td>
+                                <td th:text="${user.fullName}"></td>
+                                <td th:text="${user.email}"></td>
+                                <td th:text="${user.phone != null ? user.phone : 'N/A'}"></td>
+                                <td>
+                                    <span class="badge" 
+                                          th:classappend="${user.role == 'ROLE_ADMIN'} ? 'bg-danger' : 'bg-primary'"
+                                          th:text="${user.role == 'ROLE_ADMIN'} ? 'Admin' : 'User'">
+                                    </span>
+                                </td>
+                                <td th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy')}"></td>
+                                <td>
+                                    <a th:href="@{/users/{id}(id=${user.id})}" 
+                                       class="btn btn-info btn-sm" title="Voir">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{/users/edit/{id}(id=${user.id})}" 
+                                       class="btn btn-warning btn-sm" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a th:href="@{/users/toggle-status/{id}(id=${user.id})}" 
+                                       class="btn btn-sm"
+                                       th:classappend="${user.enabled} ? 'btn-secondary' : 'btn-success'"
+                                       th:title="${user.enabled} ? 'Désactiver' : 'Activer'">
+                                        <i class="bi" th:classappend="${user.enabled} ? 'bi-ban' : 'bi-check-circle'"></i>
+                                    </a>
+                                    <a th:href="@{/users/delete/{id}(id=${user.id})}"
+                                       class="btn btn-danger btn-sm" title="Supprimer"
+                                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

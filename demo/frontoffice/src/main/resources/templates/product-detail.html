@@ -30,13 +30,8 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-        <div class="container">
-            <a class="navbar-brand" href="/catalog">
-                <i class="bi bi-shop"></i> E-Commerce Store
-            </a>
-        </div>
-    </nav>
+   <!-- Remplacer la navbar existante par : -->
+<div th:replace="~{fragments/navbar :: navbar(${rootCategories})}"></div>
 
     <div class="container mt-5">
         <nav aria-label="breadcrumb">
