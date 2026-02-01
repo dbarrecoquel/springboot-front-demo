@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Mon Panier - E-Commerce Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Include navbar -->
+    <div th:replace="~{fragments/navbar :: navbar(rootCategories=${rootCategories})}"></div>
+
+    <!-- Basket Header -->
+    <div class="basket-header">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold">
+                <i class="bi bi-cart"></i> Mon Panier
+            </h1>
+            <p class="lead">
+                <span th:text="${#lists.size(items)}">0</span> article(s)
+            </p>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <!-- Alert Message -->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> [[${message}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row">
+            <!-- Basket Items -->
+            <div class="col-lg-8">
+                <!-- Empty Basket -->
+                <div th:if="${#lists.isEmpty(items)}" class="empty-state">
+                    <i class="bi bi-cart-x"></i>
+                    <h3 class="mt-3">Votre panier est vide</h3>
+                    <p class="text-muted">Commencez vos achats dès maintenant !</p>
+                    <a href="/catalog" class="btn btn-primary btn-lg mt-3">
+                        <i class="bi bi-arrow-left"></i> Continuer mes achats
+                    </a>
+                </div>
+
+                <!-- Basket Items List -->
+                <div th:if="${!#lists.isEmpty(items)}">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4>Articles dans le panier</h4>
+                        <a th:href="@{/basket/clear}" class="btn btn-outline-danger btn-sm"
+                           onclick="return confirm('Êtes-vous sûr de vouloir vider le panier ?')">
+                            <i class="bi bi-trash"></i> Vider le panier
+                        </a>
+                    </div>
+
+                    <div th:each="item : ${items}" class="basket-item">
+                        <div class="row align-items-center">
+                            <!-- Product Image -->
+                            <div class="col-md-2">
+                                <a th:href="@{/catalog/{id}(id=${item.product.id})}" class="text-decoration-none">
+                                    <div class="basket-item-image">
+                                        <span th:text="${item.product.name.substring(0, 1)}">P</span>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <!-- Product Info -->
+                            <div class="col-md-4">
+                                <a th:href="@{/catalog/{id}(id=${item.product.id})}" class="text-decoration-none">
+                                    <h5 th:text="${item.product.name}">Product Name</h5>
+                                    <p class="text-muted mb-1">
+                                        <small>SKU: <span th:text="${item.product.sku}"></span></small>
+                                    </p>
+                                </a>
+                            </div>
+
+                            <!-- Quantity -->
+                            <div class="col-md-3">
+                                <form th:action="@{/basket/update/{id}(id=${item.id})}" method="post" class="quantity-control">
+                                    <button type="button" class="btn btn-outline-secondary" 
+                                            onclick="decrementQuantity(this)">
+                                        <i class="bi bi-dash"></i>
+                                    </button>
+                                    <input type="number" name="quantity" class="form-control" 
+                                           th:value="${item.quantity}" min="0" max="99">
+                                    <button type="button" class="btn btn-outline-secondary" 
+                                            onclick="incrementQuantity(this)">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                    <button type="submit" class="btn btn-primary btn-sm ms-2">
+                                        <i class="bi bi-check"></i>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Price -->
+                            <div class="col-md-2">
+                                <h5 class="text-primary mb-0">
+                                    $<span th:text="${#numbers.formatDecimal(item.subtotal, 1, 2)}">0.00</span>
+                                </h5>
+                                <small class="text-muted">
+                                    $<span th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2)}"></span> / unité
+                                </small>
+                            </div>
+
+                            <!-- Remove -->
+                            <div class="col-md-1 text-end">
+                                <a th:href="@{/basket/remove/{id}(id=${item.id})}" 
+                                   class="btn btn-outline-danger btn-sm"
+                                   onclick="return confirm('Retirer cet article du panier ?')">
+                                    <i class="bi bi-x-lg"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Basket Summary -->
+            <div class="col-lg-4" th:if="${!#lists.isEmpty(items)}">
+                <div class="basket-summary">
+                    <h4 class="mb-4">Récapitulatif</h4>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Sous-total :</span>
+                        <strong>$<span th:text="${#numbers.formatDecimal(total, 1, 2)}">0.00</span></strong>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Livraison :</span>
+                        <strong>Gratuite</strong>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-4">
+                        <h5>Total :</h5>
+                        <h5 class="text-primary">
+                            $<span th:text="${#numbers.formatDecimal(total, 1, 2)}">0.00</span>
+                        </h5>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-primary btn-lg">
+                            <i class="bi bi-credit-card"></i> Passer la commande
+                        </a>
+                        <a href="/catalog" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Continuer mes achats
+                        </a>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6><i class="bi bi-shield-check"></i> Paiement sécurisé</h6>
+                        <p class="small text-muted mb-0">
+                            Vos informations sont protégées
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">&copy; 2026 E-Commerce Store. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function incrementQuantity(button) {
+            const input = button.parentElement.querySelector('input[type="number"]');
+            if (parseInt(input.value) < 99) {
+                input.value = parseInt(input.value) + 1;
+            }
+        }
+        
+        function decrementQuantity(button) {
+            const input = button.parentElement.querySelector('input[type="number"]');
+            if (parseInt(input.value) > 0) {
+                input.value = parseInt(input.value) - 1;
+            }
+        }
+    </script>
+</body>
+</html>

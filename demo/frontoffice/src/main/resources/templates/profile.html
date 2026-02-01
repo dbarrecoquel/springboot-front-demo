@@ -5,43 +5,7 @@
     <title>Mon Profil - E-Commerce Store</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <style>
-        .profile-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 50px 0;
-            margin-bottom: 40px;
-        }
-        .profile-card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .address-card {
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-        }
-        .address-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
-        }
-        .address-card.default {
-            border-color: #28a745;
-            background-color: #f0f9f4;
-        }
-        .badge-default {
-            background-color: #28a745;
-        }
-        .badge-shipping {
-            background-color: #007bff;
-        }
-        .badge-billing {
-            background-color: #6c757d;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
     <!-- Include navbar --><!-- Remplacer la navbar existante par : -->

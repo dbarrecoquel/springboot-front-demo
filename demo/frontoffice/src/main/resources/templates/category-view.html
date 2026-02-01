@@ -4,88 +4,7 @@
     <title th:text="${category.name} + ' - E-Commerce Store'">Catégorie</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <style>
-        .category-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 50px 0;
-            margin-bottom: 40px;
-        }
-        
-        .subcategory-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-            border: 2px solid #e0e0e0;
-            cursor: pointer;
-        }
-        
-        .subcategory-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            border-color: #667eea;
-        }
-        
-        .subcategory-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            color: white;
-            font-size: 2rem;
-        }
-        
-        .product-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            height: 100%;
-            border: 1px solid #e0e0e0;
-        }
-        
-        .product-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-            border-color: #667eea;
-        }
-        
-        .product-image {
-            height: 250px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 4rem;
-            font-weight: bold;
-            position: relative;
-        }
-
-        .product-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255,255,255,0.9);
-            color: #667eea;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.85rem;
-        }
-        
-        .product-price {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #667eea;
-        }
-    </style>
+	 <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
     <!-- Navigation Menu -->
@@ -137,32 +56,18 @@
         </div>
 
         <!-- Produits de cette catégorie -->
-        <div th:if="${!#lists.isEmpty(products)}">
-            <h3 class="mb-4">
-                <i class="bi bi-box-seam"></i> Produits 
-                <span class="badge bg-primary" th:text="${#lists.size(products)}">0</span>
-            </h3>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
-                <div class="col" th:each="product : ${products}">
-                    <div class="card product-card">
-                        <div class="product-image">
-                            <span th:text="${product.name.substring(0, 1)}">P</span>
-                            <div class="product-badge" th:text="${product.sku}">SKU</div>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title" th:text="${product.name}">Produit</h5>
-                            <p class="card-text text-muted" th:text="${product.description}">Description</p>
-                            <div class="product-price mb-3">
-                                $<span th:text="${#numbers.formatDecimal(product.price, 1, 2)}">0.00</span>
-                            </div>
-                            <a th:href="@{/catalog/{id}(id=${product.id})}" class="btn btn-primary w-100">
-                                <i class="bi bi-eye"></i> Voir Détails
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+       <!-- Produits de cette catégorie -->
+		<div th:if="${!#lists.isEmpty(products)}">
+		    <h3 class="mb-4">
+		        <i class="bi bi-box-seam"></i> Produits 
+		        <span class="badge bg-primary" th:text="${#lists.size(products)}">0</span>
+		    </h3>
+		    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+		        <th:block th:each="product : ${products}">
+		            <div th:replace="~{fragments/product-tile :: product-tile(${product})}"></div>
+		        </th:block>
+		    </div>
+		</div>
 
         <!-- Empty state pour produits -->
         <div th:if="${#lists.isEmpty(products) && #lists.isEmpty(subCategories)}" class="text-center py-5">
