@@ -59,7 +59,7 @@ public class CatalogNavigationController {
 
         Category category = categoryService.getCategoryById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Catégorie invalide : " + id));
-
+        CategoryDto categoryDto = categoryMapper.toDto(category);
         List<CategoryDto> subCategories = categoryService.getSubCategories(id).stream()
                 .map(categoryMapper::toDto)
                 .toList();
@@ -72,10 +72,13 @@ public class CatalogNavigationController {
                 .map(productMapper::toDto)
                 .collect(Collectors.toList());
 
-        List<CategoryDto> breadcrumb = buildBreadcrumb(category);
+        List<CategoryDto> breadcrumb = buildBreadcrumb(category)
+                .stream()
+                .map(categoryMapper::toDto)
+                .toList();
 
         CategoryResponse response = new CategoryResponse(
-                category,
+        		categoryDto,
                 subCategories,
                 products,
                 breadcrumb
@@ -84,13 +87,12 @@ public class CatalogNavigationController {
         return ResponseEntity.ok(response);
     }
 
-    /* ===================== BREADCRUMB ===================== */
-    private List<CategoryDto> buildBreadcrumb(Category category) {
-        List<CategoryDto> breadcrumb = new ArrayList<>();
+    private List<Category> buildBreadcrumb(Category category) {
+        List<Category> breadcrumb = new ArrayList<>();
         Category current = category;
 
         while (current != null) {
-            breadcrumb.add(0, categoryMapper.toDto(current));
+            breadcrumb.add(0, current);
             current = current.getParentCategoryId() != null
                     ? categoryService.getCategoryById(current.getParentCategoryId()).orElse(null)
                     : null;

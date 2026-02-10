@@ -1,8 +1,10 @@
 package com.example.product.mapper;
 
+import org.springframework.stereotype.Component;
+
 import com.example.product.model.Product;
 import com.example.product.model.dto.ProductDto;
-
+@Component
 public class ProductMapper {
 	 public ProductDto toDto(Product product) {
 	        if (product == null) {

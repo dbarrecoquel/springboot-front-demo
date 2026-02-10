@@ -9,12 +9,12 @@ import java.util.List;
 
 public class CategoryResponse {
 
-    private Category category;
+    private CategoryDto category;
     private List<CategoryDto> subCategories;
     private List<ProductDto> products;
     private List<CategoryDto> breadcrumb;
 
-    public CategoryResponse(Category category,
+    public CategoryResponse(CategoryDto category,
                             List<CategoryDto> subCategories,
                             List<ProductDto> products,
                             List<CategoryDto> breadcrumb) {
@@ -24,7 +24,7 @@ public class CategoryResponse {
         this.breadcrumb = breadcrumb;
     }
 
-    public Category getCategory() {
+    public CategoryDto getCategory() {
         return category;
     }
 
