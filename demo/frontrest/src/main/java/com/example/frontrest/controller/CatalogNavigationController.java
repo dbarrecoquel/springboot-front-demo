@@ -1,11 +1,15 @@
 package com.example.frontrest.controller;
 
 import com.example.catalog.model.Category;
+import com.example.catalog.dto.CategoryDto;
 import com.example.catalog.model.ProductCategoryAssignment;
+import com.example.catalog.model.mapper.CategoryMapper;
 import com.example.catalog.service.CategoryService;
 import com.example.catalog.service.ProductCategoryAssignmentService;
 import com.example.frontrest.models.CategoryResponse;
+import com.example.product.mapper.ProductMapper;
 import com.example.product.model.Product;
+import com.example.product.model.dto.ProductDto;
 import com.example.product.service.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,19 +27,30 @@ public class CatalogNavigationController {
     private final ProductCategoryAssignmentService assignmentService;
     private final ProductService productService;
 
+    private final CategoryMapper categoryMapper;
+    private final ProductMapper productMapper;
     public CatalogNavigationController(CategoryService categoryService,
                                            ProductCategoryAssignmentService assignmentService,
-                                           ProductService productService) {
+                                           ProductService productService,
+                                           CategoryMapper categoryMapper,
+                                           ProductMapper productMapper) {
         this.categoryService = categoryService;
         this.assignmentService = assignmentService;
         this.productService = productService;
+        this.categoryMapper = categoryMapper;
+        this.productMapper = productMapper;
     }
 
     /* ===================== HOME ===================== */
     // Catégories racines
     @GetMapping("/categories")
-    public ResponseEntity<List<Category>> getRootCategories() {
-        return ResponseEntity.ok(categoryService.getRootCategories());
+    public ResponseEntity<List<CategoryDto>> getRootCategories() {
+        return ResponseEntity.ok(
+                categoryService.getRootCategories()
+                        .stream()
+                        .map(categoryMapper::toDto)
+                        .toList()
+        );
     }
 
     /* ===================== CATEGORY ===================== */
@@ -45,16 +60,19 @@ public class CatalogNavigationController {
         Category category = categoryService.getCategoryById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Catégorie invalide : " + id));
 
-        List<Category> subCategories = categoryService.getSubCategories(id);
-
-        List<Product> products = assignmentService.getAssignmentsByCategoryId(id)
+        List<CategoryDto> subCategories = categoryService.getSubCategories(id).stream()
+                .map(categoryMapper::toDto)
+                .toList();
+        
+        List<ProductDto> products = assignmentService.getAssignmentsByCategoryId(id)
                 .stream()
                 .map(ProductCategoryAssignment::getProductId)
                 .map(productService::getProductById)
                 .flatMap(Optional::stream)
+                .map(productMapper::toDto)
                 .collect(Collectors.toList());
 
-        List<Category> breadcrumb = buildBreadcrumb(category);
+        List<CategoryDto> breadcrumb = buildBreadcrumb(category);
 
         CategoryResponse response = new CategoryResponse(
                 category,
@@ -67,12 +85,12 @@ public class CatalogNavigationController {
     }
 
     /* ===================== BREADCRUMB ===================== */
-    private List<Category> buildBreadcrumb(Category category) {
-        List<Category> breadcrumb = new ArrayList<>();
+    private List<CategoryDto> buildBreadcrumb(Category category) {
+        List<CategoryDto> breadcrumb = new ArrayList<>();
         Category current = category;
 
         while (current != null) {
-            breadcrumb.add(0, current);
+            breadcrumb.add(0, categoryMapper.toDto(current));
             current = current.getParentCategoryId() != null
                     ? categoryService.getCategoryById(current.getParentCategoryId()).orElse(null)
                     : null;

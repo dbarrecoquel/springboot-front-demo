@@ -2,6 +2,7 @@ package com.example.frontoffice.controller;
 
 import com.example.catalog.model.Category;
 import com.example.catalog.model.ProductCategoryAssignment;
+import com.example.catalog.model.mapper.CategoryMapper;
 import com.example.catalog.service.CategoryService;
 import com.example.catalog.service.ProductCategoryAssignmentService;
 import com.example.product.model.Product;
@@ -20,13 +21,15 @@ public class CatalogNavigationController {
     private final CategoryService categoryService;
     private final ProductCategoryAssignmentService assignmentService;
     private final ProductService productService;
-    
+    private final CategoryMapper categoryMapper;
     public CatalogNavigationController(CategoryService categoryService,
                                      ProductCategoryAssignmentService assignmentService,
-                                     ProductService productService) {
+                                     ProductService productService,
+                                     CategoryMapper categoryMapper) {
         this.categoryService = categoryService;
         this.assignmentService = assignmentService;
         this.productService = productService;
+        this.categoryMapper = categoryMapper;
     }
     
     // Page d'accueil avec les catégories racines

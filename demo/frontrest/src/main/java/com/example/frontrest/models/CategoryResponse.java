@@ -2,21 +2,22 @@ package com.example.frontrest.models;
 
 
 import com.example.catalog.model.Category;
-import com.example.product.model.Product;
+import com.example.catalog.dto.CategoryDto;
+import com.example.product.model.dto.ProductDto;
 
 import java.util.List;
 
 public class CategoryResponse {
 
     private Category category;
-    private List<Category> subCategories;
-    private List<Product> products;
-    private List<Category> breadcrumb;
+    private List<CategoryDto> subCategories;
+    private List<ProductDto> products;
+    private List<CategoryDto> breadcrumb;
 
     public CategoryResponse(Category category,
-                            List<Category> subCategories,
-                            List<Product> products,
-                            List<Category> breadcrumb) {
+                            List<CategoryDto> subCategories,
+                            List<ProductDto> products,
+                            List<CategoryDto> breadcrumb) {
         this.category = category;
         this.subCategories = subCategories;
         this.products = products;
@@ -27,15 +28,15 @@ public class CategoryResponse {
         return category;
     }
 
-    public List<Category> getSubCategories() {
+    public List<CategoryDto> getSubCategories() {
         return subCategories;
     }
 
-    public List<Product> getProducts() {
+    public List<ProductDto> getProducts() {
         return products;
     }
 
-    public List<Category> getBreadcrumb() {
+    public List<CategoryDto> getBreadcrumb() {
         return breadcrumb;
     }
 }
