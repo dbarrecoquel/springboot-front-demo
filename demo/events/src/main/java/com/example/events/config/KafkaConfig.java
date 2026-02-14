@@ -1,5 +1,6 @@
 package com.example.events.config;
 
+import com.example.events.model.CategoryViewEvent;
 import com.example.events.model.ProductViewEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -39,7 +40,7 @@ public class KafkaConfig {
         return mapper;
     }
     
-    // ==================== PRODUCER ====================
+    // ==================== PRODUCT EVENT PRODUCER ====================
     
     @Bean
     public ProducerFactory<String, ProductViewEvent> producerFactory(ObjectMapper objectMapper) {
@@ -64,6 +65,31 @@ public class KafkaConfig {
         return new KafkaTemplate<>(producerFactory(objectMapper));
     }
     
+    // ==================== CATEGORY EVENT PRODUCER ====================
+    
+    @Bean
+    public ProducerFactory<String, CategoryViewEvent> categoryProducerFactory(ObjectMapper objectMapper) {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        config.put(ProducerConfig.ACKS_CONFIG, "all");
+        config.put(ProducerConfig.RETRIES_CONFIG, 3);
+        config.put(ProducerConfig.LINGER_MS_CONFIG, 1);
+        config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "gzip");
+        
+        return new DefaultKafkaProducerFactory<>(
+            config,
+            new StringSerializer(),
+            new JsonSerializer<>(objectMapper)
+        );
+    }
+    
+    @Bean
+    public KafkaTemplate<String, CategoryViewEvent> categoryKafkaTemplate(ObjectMapper objectMapper) {
+        return new KafkaTemplate<>(categoryProducerFactory(objectMapper));
+    }
+    
     // ==================== CONSUMER ====================
     
     @Bean
@@ -74,7 +100,6 @@ public class KafkaConfig {
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
         
-        // Configuration du désérialiseur via properties UNIQUEMENT
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
         config.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
@@ -91,6 +116,35 @@ public class KafkaConfig {
         ConcurrentKafkaListenerContainerFactory<String, ProductViewEvent> factory = 
             new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory(objectMapper));
+        return factory;
+    }
+    
+    // ==================== CATEGORY CONSUMER ====================
+    
+    @Bean
+    public ConsumerFactory<String, CategoryViewEvent> categoryConsumerFactory(ObjectMapper objectMapper) {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "category-events-group");
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
+        
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+        config.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
+        config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
+        config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, CategoryViewEvent.class.getName());
+        config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+        
+        return new DefaultKafkaConsumerFactory<>(config);
+    }
+    
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, CategoryViewEvent> categoryKafkaListenerContainerFactory(ObjectMapper objectMapper) {
+        ConcurrentKafkaListenerContainerFactory<String, CategoryViewEvent> factory = 
+            new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(categoryConsumerFactory(objectMapper));
         return factory;
     }
 }

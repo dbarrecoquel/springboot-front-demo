@@ -23,20 +23,20 @@ public class ProductEventConsumer {
         containerFactory = "kafkaListenerContainerFactory"
     )
     public void consume(ProductViewEvent event) {
-        logger.info("📥 Received ProductViewEvent: {}", event);
+        logger.info(" Received ProductViewEvent: {}", event);
         
         try {
             // Traiter l'événement
             processEvent(event);
             
-            logger.info("✅ ProductViewEvent processed successfully: {}", event.getEventId());
+            logger.info("ProductViewEvent processed successfully: {}", event.getEventId());
         } catch (Exception e) {
-            logger.error("❌ Error processing ProductViewEvent: {}", event.getEventId(), e);
+            logger.error("Error processing ProductViewEvent: {}", event.getEventId(), e);
         }
     }
     
     private void processEvent(ProductViewEvent event) {
-        logger.info("🔄 Processing view for Product: {} (SKU: {}) by User: {}", 
+        logger.info(" Processing view for Product: {} (SKU: {}) by User: {}", 
             event.getProductName(),
             event.getProductSku(),
             event.getUserEmail() != null ? event.getUserEmail() : "Anonymous");
