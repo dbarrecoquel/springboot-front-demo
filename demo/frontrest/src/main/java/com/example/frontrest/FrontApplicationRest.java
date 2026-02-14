@@ -11,7 +11,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 	    "com.example.catalog",
 	    "com.example.user",
 	    "com.example.address",
-	    "com.example.shopping"
+	    "com.example.shopping",
+	    "com.example.events" 
 	})
 	@EntityScan({
 	    "com.example.product.model",

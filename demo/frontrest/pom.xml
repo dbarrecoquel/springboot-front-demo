@@ -43,6 +43,7 @@
             <artifactId>address</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
 
         <!-- Shopping module -->
         <dependency>
@@ -50,6 +51,11 @@
             <artifactId>shopping</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+		    <groupId>com.example</groupId>
+		    <artifactId>events</artifactId>
+		    <version>${project.version}</version>
+		</dependency>
 
         <!-- Spring Boot Web -->
         <dependency>
