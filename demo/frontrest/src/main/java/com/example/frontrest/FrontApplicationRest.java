@@ -19,14 +19,16 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 	    "com.example.catalog.model",
 	    "com.example.user.model",
 	    "com.example.address.model",
-	    "com.example.shopping.model"
+	    "com.example.shopping.model",
+	    "com.example.events.model"
 	})
 	@EnableJpaRepositories({
 	    "com.example.product.repository",
 	    "com.example.catalog.repository",
 	    "com.example.user.repository",
 	    "com.example.address.repository",
-	    "com.example.shopping.repository"
+	    "com.example.shopping.repository",
+	    "com.example.events.repository"
 	})
 	public class FrontApplicationRest {
 	    public static void main(String[] args) {

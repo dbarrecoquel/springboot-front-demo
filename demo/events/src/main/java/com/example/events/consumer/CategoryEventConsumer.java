@@ -20,7 +20,7 @@ public class CategoryEventConsumer {
     @KafkaListener(
         topics = "category-view-events",
         groupId = "category-events-group",
-        containerFactory = "categoryKafkaListenerContainerFactory"  // Utiliser le bon factory !
+        containerFactory = "categoryKafkaListenerContainerFactory" 
     )
     public void consume(CategoryViewEvent event) {
         logger.info("Received CategoryViewEvent: {}", event);

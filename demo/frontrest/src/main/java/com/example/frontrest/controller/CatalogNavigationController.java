@@ -56,6 +56,7 @@ public class CatalogNavigationController {
     
     @GetMapping("/categories")
     public ResponseEntity<List<CategoryDto>> getRootCategories() {
+    	
         return ResponseEntity.ok(
                 categoryService.getRootCategories()
                         .stream()
@@ -93,6 +94,7 @@ public class CatalogNavigationController {
                 .toList();
         
         // Envoyer l'événement Kafka (si disponible)
+        // Controller → sendCategoryViewEvent() → CategoryViewEvent (constructeur + setters) → Kafka Producer → JSON
         if (categoryEventProducer != null) {
             sendCategoryViewEvent(category, subCategories.size(), products.size(), 
                                 breadcrumbCategories, authentication, request, session);

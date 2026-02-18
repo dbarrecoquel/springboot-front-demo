@@ -32,6 +32,8 @@ public class KafkaConfig {
     @Value("${spring.kafka.consumer.group-id:product-events-group}")
     private String groupId;
     
+    //ObjectMapper personnalisé pour LocalDateTime
+    //Sans ce bean : LocalDateTime ne peut pas être sérialisé/désérialisé
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
@@ -51,7 +53,10 @@ public class KafkaConfig {
         config.put(ProducerConfig.ACKS_CONFIG, "all");
         config.put(ProducerConfig.RETRIES_CONFIG, 3);
         config.put(ProducerConfig.LINGER_MS_CONFIG, 1);
-        config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "gzip");
+        config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "gzip");//COMPRESSION_TYPE_CONFIG 
+        //compresse les messages avant de les envoyer à Kafka pour réduire la taille des données.
+        // plus de CPU utilisé avec gzip (Messages texte/JSON)
+        // voir compression lz4 (haute frequence) ou zstd (plus moderne)
         
         return new DefaultKafkaProducerFactory<>(
             config,
