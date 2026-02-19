@@ -13,80 +13,142 @@
 
     <artifactId>frontrest</artifactId>
     <name>frontrest</name>
-    <description>REST API for E-Commerce</description>
+    <description>FrontRest API module</description>
 
     <dependencies>
-        <!-- Product module -->
+        <!-- Spring Boot Starter Web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Starter Data JPA -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Starter Security -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Starter Validation -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- PostgreSQL Driver -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Product Module -->
         <dependency>
             <groupId>com.example</groupId>
             <artifactId>product</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Catalog module -->
+        <!-- Catalog Module -->
         <dependency>
             <groupId>com.example</groupId>
             <artifactId>catalog</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- User module -->
+        <!-- User Module -->
         <dependency>
             <groupId>com.example</groupId>
             <artifactId>user</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Address module -->
+        <!-- Address Module -->
         <dependency>
             <groupId>com.example</groupId>
             <artifactId>address</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
 
-        <!-- Shopping module -->
+        <!-- Shopping Module -->
         <dependency>
             <groupId>com.example</groupId>
             <artifactId>shopping</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-		    <groupId>com.example</groupId>
-		    <artifactId>events</artifactId>
-		    <version>${project.version}</version>
-		</dependency>
 
-        <!-- Spring Boot Web -->
+        <!-- Product Events Module (Kafka) -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>events</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Jackson for JSON -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <!-- Jackson Java Time Module -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
+        <!-- ==================== TEST DEPENDENCIES ==================== -->
+
+        <!-- Spring Boot Starter Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
-        <!-- Spring Security -->
+        <!-- Spring Security Test -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
-        <!-- Spring Data JPA -->
+        <!-- JUnit 5 -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
         </dependency>
 
-        <!-- Validation -->
+        <!-- Mockito -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
         </dependency>
 
-        <!-- PostgreSQL -->
+        <!-- AssertJ -->
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
         </dependency>
+
+        <!-- H2 Database (for tests) -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-test-autoconfigure</artifactId>
+	    <scope>test</scope>
+	</dependency>
     </dependencies>
 
     <build>

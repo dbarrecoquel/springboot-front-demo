@@ -35,10 +35,10 @@ public class FailedEventService {
             FailedEvent failedEvent = new FailedEvent(eventId, eventType, topic, payload, errorMessage);
             failedEventRepository.save(failedEvent);
             
-            logger.warn("💾 Saved failed event: eventId={}, type={}, error={}", 
+            logger.warn("Saved failed event: eventId={}, type={}, error={}", 
                 eventId, eventType, errorMessage);
         } catch (Exception e) {
-            logger.error("❌ Failed to save failed event: eventId={}", eventId, e);
+            logger.error("Failed to save failed event: eventId={}", eventId, e);
         }
     }
     
@@ -70,7 +70,7 @@ public class FailedEventService {
         
         if (!event.canRetry()) {
             event.markAsFailed();
-            logger.error("❌ Event max retries reached: eventId={}", event.getEventId());
+            logger.error("Event max retries reached: eventId={}", event.getEventId());
         }
         
         failedEventRepository.save(event);
@@ -85,7 +85,7 @@ public class FailedEventService {
         long success = failedEventRepository.countByStatus("SUCCESS");
         long failed = failedEventRepository.countByStatus("FAILED");
         
-        logger.info("📊 Failed Events Stats: PENDING={}, RETRYING={}, SUCCESS={}, FAILED={}", 
+        logger.info("Failed Events Stats: PENDING={}, RETRYING={}, SUCCESS={}, FAILED={}", 
             pending, retrying, success, failed);
     }
 }
