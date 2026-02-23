@@ -1,8 +1,10 @@
 package com.example.events.integration;
 
 import com.example.events.config.KafkaConfig;
+import com.example.events.model.BasketViewEvent;
 import com.example.events.model.CategoryViewEvent;
 import com.example.events.model.ProductViewEvent;
+import com.example.events.producer.BasketEventProducer;
 import com.example.events.producer.CategoryEventProducer;
 import com.example.events.producer.ProductEventProducer;
 import com.example.events.service.FailedEventService;
@@ -26,6 +28,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -37,12 +40,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(classes = {
     KafkaConfig.class,
     ProductEventProducer.class,
-    CategoryEventProducer.class
+    CategoryEventProducer.class,
+    BasketEventProducer.class
 })
 @ActiveProfiles("test")
 @EmbeddedKafka(
     partitions = 1,
-    topics = {"product-view-events", "category-view-events"}
+    topics = {"product-view-events", "category-view-events","basket-view-events"}
 )
 @DirtiesContext
 class KafkaIntegrationTest {
@@ -52,6 +56,9 @@ class KafkaIntegrationTest {
     
     @Autowired
     private CategoryEventProducer categoryEventProducer;
+    
+    @Autowired
+    private BasketEventProducer basketEventProducer;
     
     @Autowired
     private EmbeddedKafkaBroker embeddedKafkaBroker;
@@ -64,6 +71,9 @@ class KafkaIntegrationTest {
     
     private KafkaMessageListenerContainer<String, CategoryViewEvent> categoryContainer;
     private BlockingQueue<ConsumerRecord<String, CategoryViewEvent>> categoryRecords;
+    
+    private KafkaMessageListenerContainer<String, BasketViewEvent> basketContainer;
+    private BlockingQueue<ConsumerRecord<String, BasketViewEvent>> basketRecords;
     
     @BeforeEach
     void setUp() {
@@ -110,6 +120,30 @@ class KafkaIntegrationTest {
         categoryContainer.start();
         
         ContainerTestUtils.waitForAssignment(categoryContainer, embeddedKafkaBroker.getPartitionsPerTopic());
+        
+        //SETUP BASKET CONSUMER
+        Map<String, Object> basketConfigs = new HashMap<>();
+        basketConfigs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaBroker.getBrokersAsString());
+        basketConfigs.put(ConsumerConfig.GROUP_ID_CONFIG, "basket-integration-test-group");
+        basketConfigs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        basketConfigs.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        basketConfigs.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        basketConfigs.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+        basketConfigs.put(JsonDeserializer.VALUE_DEFAULT_TYPE, BasketViewEvent.class.getName());
+        
+        DefaultKafkaConsumerFactory<String, BasketViewEvent> basketConsumerFactory = 
+            new DefaultKafkaConsumerFactory<>(basketConfigs);
+        
+        ContainerProperties basketContainerProperties = new ContainerProperties("basket-view-events");
+        basketContainer = new KafkaMessageListenerContainer<>(basketConsumerFactory, basketContainerProperties);
+        
+        basketRecords = new LinkedBlockingQueue<>();
+        basketContainer.setupMessageListener((MessageListener<String, BasketViewEvent>) basketRecords::add);
+        basketContainer.start();
+        
+        ContainerTestUtils.waitForAssignment(basketContainer, embeddedKafkaBroker.getPartitionsPerTopic());
+        
+        
     }
     
     @AfterEach
@@ -120,6 +154,8 @@ class KafkaIntegrationTest {
         if (categoryContainer != null) {
             categoryContainer.stop();
         }
+        if (basketContainer != null)
+        	basketContainer.stop();
     }
     
     @Test
@@ -178,6 +214,36 @@ class KafkaIntegrationTest {
         assertNotNull(receivedEvent.getEventId());
         assertNotNull(receivedEvent.getTimestamp());
     }
+    @Test
+    void testBasketEventEndToEnd() throws InterruptedException {
+        // Given
+    	 LocalDateTime now = LocalDateTime.now();
+    	 BasketViewEvent event1 = new BasketViewEvent(
+                 1L,                    // basketid
+                 1L,					   // userId
+                 "test",					// session id
+                 now,					//createdAt
+                 now							//updatedAt	
+             );
+        // When
+        basketEventProducer.sendBasketViewEvent(event1);
+        
+        // Then
+        ConsumerRecord<String, BasketViewEvent> received = basketRecords.poll(15, TimeUnit.SECONDS);
+        
+        assertNotNull(received, "Should receive BasketViewEvent");
+        assertEquals("1", received.key(), "Key should be basket ID");
+        
+       
+        BasketViewEvent receivedEvent = received.value();
+        assertNotNull(receivedEvent);
+        assertEquals(1L, receivedEvent.getBasketId());
+        assertEquals(1L, receivedEvent.getUserId());
+        assertEquals("test", receivedEvent.getSessionId());
+        assertNotNull(receivedEvent.getEventId());
+        assertNotNull(receivedEvent.getCreatedAt());
+        assertNotNull(receivedEvent.getUpdatedAt());
+    }
     
     @Test
     void testBothEventsInSequence() throws InterruptedException {
@@ -203,5 +269,42 @@ class KafkaIntegrationTest {
         
         assertEquals(99L, receivedProduct.value().getProductId());
         assertEquals(88L, receivedCategory.value().getCategoryId());
+    }
+    
+    @Test
+    void testTripleEventsInSequence() throws InterruptedException {
+        // Given
+        ProductViewEvent productEvent = new ProductViewEvent(
+            99L, "Product 99", "SKU-99", null, "session-999", null
+        );
+        
+        CategoryViewEvent categoryEvent = new CategoryViewEvent(
+            88L, "Category 88", null, null, 0, 1, 10, null, "session-888", null
+        );
+        LocalDateTime now = LocalDateTime.now();
+   		BasketViewEvent basketEvent = new BasketViewEvent(
+                1L,                    // basketid
+                1L,					   // userId
+                "test",					// session id
+                now,					//createdAt
+                now							//updatedAt	
+            );
+        // When
+        productEventProducer.sendProductViewEvent(productEvent);
+        categoryEventProducer.sendCategoryViewEvent(categoryEvent);
+        basketEventProducer.sendBasketViewEvent(basketEvent);
+        
+        // Then
+        ConsumerRecord<String, ProductViewEvent> receivedProduct = productRecords.poll(15, TimeUnit.SECONDS);
+        ConsumerRecord<String, CategoryViewEvent> receivedCategory = categoryRecords.poll(15, TimeUnit.SECONDS);
+        ConsumerRecord<String, BasketViewEvent> receivedBasket = basketRecords.poll(15, TimeUnit.SECONDS);
+        
+        assertNotNull(receivedProduct, "Should receive ProductViewEvent");
+        assertNotNull(receivedCategory, "Should receive CategoryViewEvent");
+        assertNotNull(receivedBasket, "Should receive BasketViewEvent");
+        
+        assertEquals(99L, receivedProduct.value().getProductId());
+        assertEquals(88L, receivedCategory.value().getCategoryId());
+        assertEquals(1L, receivedBasket.value().getBasketId());
     }
 }
