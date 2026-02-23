@@ -204,6 +204,7 @@ public class KafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<String, BasketViewEvent> basketKafkaListenerContainerFactory(ObjectMapper objectMapper) {
         ConcurrentKafkaListenerContainerFactory<String, BasketViewEvent> factory = 
             new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setAutoStartup(true);
         factory.setConsumerFactory(basketConsumerFactory(objectMapper));
         return factory;
     }
