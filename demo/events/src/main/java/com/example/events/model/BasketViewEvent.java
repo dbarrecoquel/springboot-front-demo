@@ -40,6 +40,15 @@ public class BasketViewEvent {
     public BasketViewEvent() {
     	this.eventId = UUID.randomUUID().toString();
     }
+    public BasketViewEvent(Long basketId, Long userId, String sessionId, LocalDateTime createdAt, LocalDateTime updatedAt)
+    {
+    	this();
+    	this.basketId = basketId;
+    	this.userId = userId;
+    	this.sessionId = sessionId;
+    	this.createdAt = createdAt;
+    	this.updatedAt = updatedAt;
+    }
 	public String getEventId() {
 		return eventId;
 	}

@@ -146,7 +146,7 @@ class BasketEventConsumerTest {
     }
     
     @Test
-    void testConsumeCategoryViewEvent_NoExceptionThrown() {
+    void testConsumeBasketViewEvent_NoExceptionThrown() {
         // Given
     	 BasketViewEvent event = new BasketViewEvent( );
          event.setBasketId(1L);
