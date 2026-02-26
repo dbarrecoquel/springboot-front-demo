@@ -1,5 +1,7 @@
 package com.example.frontoffice.controller;
 
+import com.example.events.model.AddToBasketEvent;
+import com.example.events.producer.AddToBasketEventProducer;
 import com.example.product.model.Product;
 import com.example.product.service.ProductService;
 import com.example.shopping.model.Basket;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/basket")
@@ -25,15 +28,18 @@ public class BasketController {
     private final ProductLineItemService lineItemService;
     private final ProductService productService;
     private final UserService userService;
-    
+
+    private final AddToBasketEventProducer addToBasketEventProducer;
     public BasketController(BasketService basketService,
                           ProductLineItemService lineItemService,
                           ProductService productService,
-                          UserService userService) {
+                          UserService userService,
+                          Optional<AddToBasketEventProducer> addToBasketEventProducer) {
         this.basketService = basketService;
         this.lineItemService = lineItemService;
         this.productService = productService;
         this.userService = userService;
+        this.addToBasketEventProducer = addToBasketEventProducer.orElse(null);
     }
     
     // Afficher le panier
@@ -64,6 +70,10 @@ public class BasketController {
         lineItemService.addOrUpdateLineItem(basket.getId(), productId, quantity, product.getPrice());
         
         redirectAttributes.addFlashAttribute("message", "Produit ajouté au panier !");
+        
+        if (addToBasketEventProducer != null)
+        	this.sendAddToBasketEvent(basket, quantity, productId);
+        
         return "redirect:/basket";
     }
     
@@ -123,5 +133,20 @@ public class BasketController {
     public int getBasketCount(Authentication authentication, HttpSession session) {
         Basket basket = getOrCreateBasket(authentication, session);
         return lineItemService.getBasketItemCount(basket.getId());
+    }
+    
+    private void sendAddToBasketEvent(Basket basket,
+    		Integer quantity, Long productId) {
+    	
+		try {
+			AddToBasketEvent event = new AddToBasketEvent(productId,quantity,basket.getId());
+			// Envoyer l'événement à Kafka
+			addToBasketEventProducer.sendAddToBasketEvent(event);
+			
+		} 
+		catch (Exception e) {
+			// Log l'erreur mais ne pas bloquer la requête
+			System.err.println("Error sending ProductViewEvent: " + e.getMessage());
+		}
     }
 }

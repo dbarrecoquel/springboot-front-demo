@@ -1,5 +1,6 @@
 package com.example.events.config;
 
+import com.example.events.model.AddToBasketEvent;
 import com.example.events.model.BasketViewEvent;
 import com.example.events.model.CategoryViewEvent;
 import com.example.events.model.ProductViewEvent;
@@ -119,6 +120,31 @@ public class KafkaConfig {
     public KafkaTemplate<String, BasketViewEvent> basketKafkaTemplate(ObjectMapper objectMapper) {
         return new KafkaTemplate<>(basketProducerFactory(objectMapper));
     }
+    
+    // AddToBasketEvent producer;
+    @Bean
+    public ProducerFactory<String, AddToBasketEvent> addToBasketProducerFactory(ObjectMapper objectMapper) {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        config.put(ProducerConfig.ACKS_CONFIG, "all");
+        config.put(ProducerConfig.RETRIES_CONFIG, 3);
+        config.put(ProducerConfig.LINGER_MS_CONFIG, 1);
+        config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "gzip");
+        
+        return new DefaultKafkaProducerFactory<>(
+            config,
+            new StringSerializer(),
+            new JsonSerializer<>(objectMapper)
+        );
+    }
+    
+    @Bean
+    public KafkaTemplate<String, AddToBasketEvent> addToBasketKafkaTemplate(ObjectMapper objectMapper) {
+        return new KafkaTemplate<>(addToBasketProducerFactory(objectMapper));
+    }
+    
     // ==================== CONSUMER ====================
     
     @Bean
@@ -206,6 +232,38 @@ public class KafkaConfig {
             new ConcurrentKafkaListenerContainerFactory<>();
         factory.setAutoStartup(true);
         factory.setConsumerFactory(basketConsumerFactory(objectMapper));
+        return factory;
+    }
+    
+    // AddTo Basket Consummer
+    
+    @Bean
+    public ConsumerFactory<String, AddToBasketEvent> addToBasketConsumerFactory(ObjectMapper objectMapper) {
+
+        JsonDeserializer<AddToBasketEvent> valueDeserializer =
+                new JsonDeserializer<>(AddToBasketEvent.class, objectMapper, false);
+
+        valueDeserializer.addTrustedPackages("*");
+        valueDeserializer.setUseTypeHeaders(false);
+
+        return new DefaultKafkaConsumerFactory<>(
+            Map.of(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
+                ConsumerConfig.GROUP_ID_CONFIG, "add-to-basket-events-group",
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
+                ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true
+            ),
+            new StringDeserializer(),
+            new ErrorHandlingDeserializer<>(valueDeserializer)
+        );
+    }
+    
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, AddToBasketEvent> addToBasketKafkaListenerContainerFactory(ObjectMapper objectMapper) {
+        ConcurrentKafkaListenerContainerFactory<String, AddToBasketEvent> factory = 
+            new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setAutoStartup(true);
+        factory.setConsumerFactory(addToBasketConsumerFactory(objectMapper));
         return factory;
     }
 }

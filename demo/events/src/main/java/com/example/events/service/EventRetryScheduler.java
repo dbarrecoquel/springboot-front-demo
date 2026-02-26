@@ -1,5 +1,6 @@
 package com.example.events.service;
 
+import com.example.events.model.AddToBasketEvent;
 import com.example.events.model.BasketViewEvent;
 import com.example.events.model.CategoryViewEvent;
 import com.example.events.model.FailedEvent;
@@ -22,17 +23,20 @@ public class EventRetryScheduler {
     private final KafkaTemplate<String, ProductViewEvent> productKafkaTemplate;
     private final KafkaTemplate<String, CategoryViewEvent> categoryKafkaTemplate;
     private final KafkaTemplate<String, BasketViewEvent> basketKafkaTemplate;
+    private final KafkaTemplate<String, AddToBasketEvent> addToBasketKafkaTemplate;
     private final ObjectMapper objectMapper;
     
     public EventRetryScheduler(FailedEventService failedEventService,
                               KafkaTemplate<String, ProductViewEvent> productKafkaTemplate,
                               KafkaTemplate<String, CategoryViewEvent> categoryKafkaTemplate,
                               KafkaTemplate<String, BasketViewEvent> basketKafkaTemplate,
+                              KafkaTemplate<String, AddToBasketEvent> addToBasketKafkaTemplate,
                               ObjectMapper objectMapper) {
         this.failedEventService = failedEventService;
         this.productKafkaTemplate = productKafkaTemplate;
         this.categoryKafkaTemplate = categoryKafkaTemplate;
         this.basketKafkaTemplate = basketKafkaTemplate;
+        this.addToBasketKafkaTemplate = addToBasketKafkaTemplate;
         this.objectMapper = objectMapper;
     }
     
@@ -75,6 +79,10 @@ public class EventRetryScheduler {
                 retryCategoryViewEvent(failedEvent);
             } else if ("BasketViewEvent".equals(failedEvent.getEventType())) {
                 retryBasketViewEvent(failedEvent);
+            }
+            else if ("AddToBasketEvent".equals(failedEvent.getEventType())) {
+                retryAddToBasketEvent(failedEvent);
+             
             } else {
                 logger.error("❌ Unknown event type: {}", failedEvent.getEventType());
                 failedEvent.markAsFailed();
@@ -124,6 +132,21 @@ public class EventRetryScheduler {
         BasketViewEvent event = objectMapper.readValue(failedEvent.getPayload(), BasketViewEvent.class);
         
         basketKafkaTemplate.send(failedEvent.getTopic(), event.getBasketId().toString(), event)
+            .whenComplete((result, ex) -> {
+                if (ex == null) {
+                    logger.info("✅ Retry successful: eventId={}", failedEvent.getEventId());
+                    failedEventService.markAsSuccess(failedEvent);
+                } else {
+                    logger.error("❌ Retry failed: eventId={}, error={}", 
+                        failedEvent.getEventId(), ex.getMessage());
+                    failedEventService.incrementRetry(failedEvent, ex.getMessage());
+                }
+            });
+    }
+    private void retryAddToBasketEvent(FailedEvent failedEvent) throws Exception {
+        AddToBasketEvent event = objectMapper.readValue(failedEvent.getPayload(), AddToBasketEvent.class);
+        
+        addToBasketKafkaTemplate.send(failedEvent.getTopic(), event.getBasketId().toString(), event)
             .whenComplete((result, ex) -> {
                 if (ex == null) {
                     logger.info("✅ Retry successful: eventId={}", failedEvent.getEventId());

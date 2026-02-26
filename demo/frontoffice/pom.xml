@@ -46,6 +46,12 @@
 	    <artifactId>shopping</artifactId>
 	    <version>${project.version}</version>
 	</dependency>
+<!-- Product Events Module (Kafka) -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>events</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Spring Boot Web -->
         <dependency>
