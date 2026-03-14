@@ -4,9 +4,7 @@ import com.example.events.config.KafkaConfig;
 import com.example.events.model.BasketViewEvent;
 import com.example.events.model.CategoryViewEvent;
 import com.example.events.model.ProductViewEvent;
-import com.example.events.producer.BasketEventProducer;
-import com.example.events.producer.CategoryEventProducer;
-import com.example.events.producer.ProductEventProducer;
+import com.example.events.producer.EventProducer;
 import com.example.events.service.FailedEventService;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -39,9 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = {
     KafkaConfig.class,
-    ProductEventProducer.class,
-    CategoryEventProducer.class,
-    BasketEventProducer.class
+    EventProducer.class
 })
 @ActiveProfiles("test")
 @EmbeddedKafka(
@@ -52,13 +48,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class KafkaIntegrationTest {
     
     @Autowired
-    private ProductEventProducer productEventProducer;
+    private EventProducer eventProducer;
     
-    @Autowired
-    private CategoryEventProducer categoryEventProducer;
-    
-    @Autowired
-    private BasketEventProducer basketEventProducer;
     
     @Autowired
     private EmbeddedKafkaBroker embeddedKafkaBroker;
@@ -167,7 +158,7 @@ class KafkaIntegrationTest {
         event.setIpAddress("192.168.1.1");
         
         // When
-        productEventProducer.sendProductViewEvent(event);
+        eventProducer.sendProductViewEvent(event);
         
         // Then
         ConsumerRecord<String, ProductViewEvent> received = productRecords.poll(15, TimeUnit.SECONDS);
@@ -195,7 +186,7 @@ class KafkaIntegrationTest {
         event.setBreadcrumbPath("Test Category");
         
         // When
-        categoryEventProducer.sendCategoryViewEvent(event);
+        eventProducer.sendCategoryViewEvent(event);
         
         // Then
         ConsumerRecord<String, CategoryViewEvent> received = categoryRecords.poll(15, TimeUnit.SECONDS);
@@ -226,7 +217,7 @@ class KafkaIntegrationTest {
                  now							//updatedAt	
              );
         // When
-        basketEventProducer.sendBasketViewEvent(event1);
+    	 eventProducer.sendBasketViewEvent(event1);
         
         // Then
         ConsumerRecord<String, BasketViewEvent> received = basketRecords.poll(15, TimeUnit.SECONDS);
@@ -257,8 +248,8 @@ class KafkaIntegrationTest {
         );
         
         // When
-        productEventProducer.sendProductViewEvent(productEvent);
-        categoryEventProducer.sendCategoryViewEvent(categoryEvent);
+        eventProducer.sendProductViewEvent(productEvent);
+        eventProducer.sendCategoryViewEvent(categoryEvent);
         
         // Then
         ConsumerRecord<String, ProductViewEvent> receivedProduct = productRecords.poll(15, TimeUnit.SECONDS);
@@ -290,9 +281,9 @@ class KafkaIntegrationTest {
                 now							//updatedAt	
             );
         // When
-        productEventProducer.sendProductViewEvent(productEvent);
-        categoryEventProducer.sendCategoryViewEvent(categoryEvent);
-        basketEventProducer.sendBasketViewEvent(basketEvent);
+   		eventProducer.sendProductViewEvent(productEvent);
+   		eventProducer.sendCategoryViewEvent(categoryEvent);
+   		eventProducer.sendBasketViewEvent(basketEvent);
         
         // Then
         ConsumerRecord<String, ProductViewEvent> receivedProduct = productRecords.poll(15, TimeUnit.SECONDS);

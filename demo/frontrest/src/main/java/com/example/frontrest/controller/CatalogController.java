@@ -1,7 +1,7 @@
 package com.example.frontrest.controller;
 
 import com.example.events.model.ProductViewEvent;
-import com.example.events.producer.ProductEventProducer;
+import com.example.events.producer.EventProducer;
 import com.example.product.model.Product;
 import com.example.product.service.ProductService;
 import com.example.user.model.User;
@@ -20,11 +20,11 @@ import java.util.List;
 public class CatalogController {
     
     private final ProductService productService;
-    private final ProductEventProducer productEventProducer;
+    private final EventProducer productEventProducer;
     private final UserService userService;
     
     public CatalogController(ProductService productService,
-                                ProductEventProducer productEventProducer,
+    							EventProducer productEventProducer,
                                 UserService userService) {
         this.productService = productService;
         this.productEventProducer = productEventProducer;

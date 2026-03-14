@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = {KafkaConfig.class, CategoryEventProducer.class})
+@SpringBootTest(classes = {KafkaConfig.class, EventProducer.class})
 @ActiveProfiles("test")
 @EmbeddedKafka(
 	    partitions = 1,
@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.*;
     private static final String TOPIC = "category-view-events";
     
     @Autowired
-    private CategoryEventProducer categoryEventProducer;
+    private EventProducer categoryEventProducer;
     
     @MockitoBean
     private FailedEventService failedEventService;

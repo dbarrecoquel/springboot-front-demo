@@ -1,9 +1,6 @@
 package com.example.events.config;
 
-import com.example.events.model.AddToBasketEvent;
-import com.example.events.model.BasketViewEvent;
-import com.example.events.model.CategoryViewEvent;
-import com.example.events.model.ProductViewEvent;
+import com.example.events.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -27,15 +24,10 @@ import java.util.Map;
 @Configuration
 @EnableKafka
 public class KafkaConfig {
-    
+
     @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
-    
-    @Value("${spring.kafka.consumer.group-id:product-events-group}")
-    private String groupId;
-    
-    //ObjectMapper personnalisé pour LocalDateTime
-    //Sans ce bean : LocalDateTime ne peut pas être sérialisé/désérialisé
+
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
@@ -43,39 +35,11 @@ public class KafkaConfig {
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         return mapper;
     }
-    
-    // ==================== PRODUCT EVENT PRODUCER ====================
-    
+
+    // ==================== PRODUCER GÉNÉRIQUE ====================
+
     @Bean
-    public ProducerFactory<String, ProductViewEvent> producerFactory(ObjectMapper objectMapper) {
-        Map<String, Object> config = new HashMap<>();
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        config.put(ProducerConfig.ACKS_CONFIG, "all");
-        config.put(ProducerConfig.RETRIES_CONFIG, 3);
-        config.put(ProducerConfig.LINGER_MS_CONFIG, 1);
-        config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "gzip");//COMPRESSION_TYPE_CONFIG 
-        //compresse les messages avant de les envoyer à Kafka pour réduire la taille des données.
-        // plus de CPU utilisé avec gzip (Messages texte/JSON)
-        // voir compression lz4 (haute frequence) ou zstd (plus moderne)
-        
-        return new DefaultKafkaProducerFactory<>(
-            config,
-            new StringSerializer(),
-            new JsonSerializer<>(objectMapper)
-        );
-    }
-    
-    @Bean
-    public KafkaTemplate<String, ProductViewEvent> kafkaTemplate(ObjectMapper objectMapper) {
-        return new KafkaTemplate<>(producerFactory(objectMapper));
-    }
-    
-    // ==================== CATEGORY EVENT PRODUCER ====================
-    
-    @Bean
-    public ProducerFactory<String, CategoryViewEvent> categoryProducerFactory(ObjectMapper objectMapper) {
+    public ProducerFactory<String, Object> genericProducerFactory(ObjectMapper objectMapper) {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -84,186 +48,96 @@ public class KafkaConfig {
         config.put(ProducerConfig.RETRIES_CONFIG, 3);
         config.put(ProducerConfig.LINGER_MS_CONFIG, 1);
         config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "gzip");
-        
         return new DefaultKafkaProducerFactory<>(
             config,
             new StringSerializer(),
             new JsonSerializer<>(objectMapper)
         );
     }
-    
-    @Bean
-    public KafkaTemplate<String, CategoryViewEvent> categoryKafkaTemplate(ObjectMapper objectMapper) {
-        return new KafkaTemplate<>(categoryProducerFactory(objectMapper));
+
+    @Bean("genericKafkaTemplate")
+    public KafkaTemplate<String, Object> genericKafkaTemplate(ObjectMapper objectMapper) {
+        return new KafkaTemplate<>(genericProducerFactory(objectMapper));
     }
-    
-    // ==================== Basker EVENT PRODUCER ====================
-    @Bean
-    public ProducerFactory<String, BasketViewEvent> basketProducerFactory(ObjectMapper objectMapper) {
-        Map<String, Object> config = new HashMap<>();
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        config.put(ProducerConfig.ACKS_CONFIG, "all");
-        config.put(ProducerConfig.RETRIES_CONFIG, 3);
-        config.put(ProducerConfig.LINGER_MS_CONFIG, 1);
-        config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "gzip");
-        
-        return new DefaultKafkaProducerFactory<>(
-            config,
-            new StringSerializer(),
-            new JsonSerializer<>(objectMapper)
-        );
-    }
-    
-    @Bean
-    public KafkaTemplate<String, BasketViewEvent> basketKafkaTemplate(ObjectMapper objectMapper) {
-        return new KafkaTemplate<>(basketProducerFactory(objectMapper));
-    }
-    
-    // AddToBasketEvent producer;
-    @Bean
-    public ProducerFactory<String, AddToBasketEvent> addToBasketProducerFactory(ObjectMapper objectMapper) {
-        Map<String, Object> config = new HashMap<>();
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        config.put(ProducerConfig.ACKS_CONFIG, "all");
-        config.put(ProducerConfig.RETRIES_CONFIG, 3);
-        config.put(ProducerConfig.LINGER_MS_CONFIG, 1);
-        config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "gzip");
-        
-        return new DefaultKafkaProducerFactory<>(
-            config,
-            new StringSerializer(),
-            new JsonSerializer<>(objectMapper)
-        );
-    }
-    
-    @Bean
-    public KafkaTemplate<String, AddToBasketEvent> addToBasketKafkaTemplate(ObjectMapper objectMapper) {
-        return new KafkaTemplate<>(addToBasketProducerFactory(objectMapper));
-    }
-    
-    // ==================== CONSUMER ====================
-    
-    @Bean
-    public ConsumerFactory<String, ProductViewEvent> consumerFactory(ObjectMapper objectMapper) {
+
+    // ==================== CONSUMER FACTORY HELPER ====================
+
+    private <T> ConsumerFactory<String, T> buildConsumerFactory(
+            ObjectMapper objectMapper, String groupId, Class<T> targetType) {
+        JsonDeserializer<T> deserializer = new JsonDeserializer<>(targetType, objectMapper, false);
+        deserializer.addTrustedPackages("*");
+        deserializer.setUseTypeHeaders(false);
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
-        
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        config.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
-        config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
-        config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, ProductViewEvent.class.getName());
-        config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-        
-        return new DefaultKafkaConsumerFactory<>(config);
-    }
-    
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, ProductViewEvent> kafkaListenerContainerFactory(ObjectMapper objectMapper) {
-        ConcurrentKafkaListenerContainerFactory<String, ProductViewEvent> factory = 
-            new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory(objectMapper));
-        return factory;
-    }
-    
-    // ==================== CATEGORY CONSUMER ====================
-    
-    @Bean
-    public ConsumerFactory<String, CategoryViewEvent> categoryConsumerFactory(ObjectMapper objectMapper) {
-        Map<String, Object> config = new HashMap<>();
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "category-events-group");
-        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
-        
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        config.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
-        config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
-        config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, CategoryViewEvent.class.getName());
-        config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-        
-        return new DefaultKafkaConsumerFactory<>(config);
-    }
-    
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, CategoryViewEvent> categoryKafkaListenerContainerFactory(ObjectMapper objectMapper) {
-        ConcurrentKafkaListenerContainerFactory<String, CategoryViewEvent> factory = 
-            new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(categoryConsumerFactory(objectMapper));
-        return factory;
-    }
-    
- // ==================== BASKET CONSUMER ====================
-    
-    @Bean
-    public ConsumerFactory<String, BasketViewEvent> basketConsumerFactory(ObjectMapper objectMapper) {
-
-        JsonDeserializer<BasketViewEvent> valueDeserializer =
-                new JsonDeserializer<>(BasketViewEvent.class, objectMapper, false);
-
-        valueDeserializer.addTrustedPackages("*");
-        valueDeserializer.setUseTypeHeaders(false);
-
         return new DefaultKafkaConsumerFactory<>(
-            Map.of(
-                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
-                ConsumerConfig.GROUP_ID_CONFIG, "basket-events-group",
-                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
-                ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true
-            ),
+            config,
             new StringDeserializer(),
-            new ErrorHandlingDeserializer<>(valueDeserializer)
+            new ErrorHandlingDeserializer<>(deserializer)
         );
     }
-    
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, BasketViewEvent> basketKafkaListenerContainerFactory(ObjectMapper objectMapper) {
-        ConcurrentKafkaListenerContainerFactory<String, BasketViewEvent> factory = 
+
+    private <T> ConcurrentKafkaListenerContainerFactory<String, T> buildContainerFactory(
+            ConsumerFactory<String, T> consumerFactory) {
+        ConcurrentKafkaListenerContainerFactory<String, T> factory =
             new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory);
         factory.setAutoStartup(true);
-        factory.setConsumerFactory(basketConsumerFactory(objectMapper));
         return factory;
     }
-    
-    // AddTo Basket Consummer
-    
+
+    // ==================== CONSUMERS ====================
+
     @Bean
-    public ConsumerFactory<String, AddToBasketEvent> addToBasketConsumerFactory(ObjectMapper objectMapper) {
-
-        JsonDeserializer<AddToBasketEvent> valueDeserializer =
-                new JsonDeserializer<>(AddToBasketEvent.class, objectMapper, false);
-
-        valueDeserializer.addTrustedPackages("*");
-        valueDeserializer.setUseTypeHeaders(false);
-
-        return new DefaultKafkaConsumerFactory<>(
-            Map.of(
-                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
-                ConsumerConfig.GROUP_ID_CONFIG, "add-to-basket-events-group",
-                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
-                ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true
-            ),
-            new StringDeserializer(),
-            new ErrorHandlingDeserializer<>(valueDeserializer)
-        );
+    public ConcurrentKafkaListenerContainerFactory<String, ProductViewEvent>
+            kafkaListenerContainerFactory(ObjectMapper objectMapper) {
+        return buildContainerFactory(
+            buildConsumerFactory(objectMapper, "product-events-group", ProductViewEvent.class));
     }
-    
+
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, AddToBasketEvent> addToBasketKafkaListenerContainerFactory(ObjectMapper objectMapper) {
-        ConcurrentKafkaListenerContainerFactory<String, AddToBasketEvent> factory = 
-            new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setAutoStartup(true);
-        factory.setConsumerFactory(addToBasketConsumerFactory(objectMapper));
-        return factory;
+    public ConcurrentKafkaListenerContainerFactory<String, CategoryViewEvent>
+            categoryKafkaListenerContainerFactory(ObjectMapper objectMapper) {
+        return buildContainerFactory(
+            buildConsumerFactory(objectMapper, "category-events-group", CategoryViewEvent.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, BasketViewEvent>
+            basketKafkaListenerContainerFactory(ObjectMapper objectMapper) {
+        return buildContainerFactory(
+            buildConsumerFactory(objectMapper, "basket-events-group", BasketViewEvent.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, AddToBasketEvent>
+            addToBasketKafkaListenerContainerFactory(ObjectMapper objectMapper) {
+        return buildContainerFactory(
+            buildConsumerFactory(objectMapper, "add-to-basket-events-group", AddToBasketEvent.class));
+    }
+
+    // ==================== CONSUMERS PANIER ABANDONNÉ ====================
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, BasketCreatedEvent>
+            basketCreatedKafkaListenerContainerFactory(ObjectMapper objectMapper) {
+        return buildContainerFactory(
+            buildConsumerFactory(objectMapper, "basket-reconciliation-group", BasketCreatedEvent.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, BasketConvertedEvent>
+            basketConvertedKafkaListenerContainerFactory(ObjectMapper objectMapper) {
+        return buildContainerFactory(
+            buildConsumerFactory(objectMapper, "basket-reconciliation-group", BasketConvertedEvent.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, BasketAbandonedEvent>
+            basketAbandonedKafkaListenerContainerFactory(ObjectMapper objectMapper) {
+        return buildContainerFactory(
+            buildConsumerFactory(objectMapper, "basket-abandoned-group", BasketAbandonedEvent.class));
     }
 }
