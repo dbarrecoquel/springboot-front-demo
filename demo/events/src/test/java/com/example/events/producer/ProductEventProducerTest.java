@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = {KafkaConfig.class, ProductEventProducer.class})
+@SpringBootTest(classes = {KafkaConfig.class, EventProducer.class})
 @ActiveProfiles("test")
 @EmbeddedKafka(
     partitions = 1,
@@ -42,7 +42,7 @@ class ProductEventProducerTest {
     private static final String TOPIC = "product-view-events";
     
     @Autowired
-    private ProductEventProducer productEventProducer;
+    private EventProducer productEventProducer;
     
     @Autowired
     private EmbeddedKafkaBroker embeddedKafkaBroker;

@@ -17,8 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.events.model.AddToBasketEvent;
 import com.example.events.model.BasketViewEvent;
-import com.example.events.producer.AddToBasketEventProducer;
-import com.example.events.producer.BasketEventProducer;
+import com.example.events.producer.EventProducer;
 import com.example.frontrest.models.AddToBasketRequest;
 import com.example.frontrest.models.BasketResponse;
 import com.example.frontrest.models.MessageResponse;
@@ -44,20 +43,17 @@ public class BasketController {
     private final ProductService productService;
     private final UserService userService;
 
-    private final BasketEventProducer basketEventProducer;
-    private final AddToBasketEventProducer addToBasketEventProducer;
+    private final EventProducer basketEventProducer;
     public BasketController(BasketService basketService,
                           ProductLineItemService lineItemService,
                           ProductService productService,
                           UserService userService,
-                          Optional<BasketEventProducer> basketEventProducer,
-                          Optional<AddToBasketEventProducer> addToBasketEventProducer) {
+                          Optional<EventProducer> addToBasketEventProducer) {
         this.basketService = basketService;
         this.lineItemService = lineItemService;
         this.productService = productService;
         this.userService = userService;
-        this.basketEventProducer = basketEventProducer.orElse(null);
-        this.addToBasketEventProducer = addToBasketEventProducer.orElse(null);
+        this.basketEventProducer = addToBasketEventProducer.orElse(null);
     }
     
     /* ===================== VIEW BASKET ===================== */
@@ -90,7 +86,7 @@ public class BasketController {
             request.getQuantity(), 
             product.getPrice()
         );
-        if (addToBasketEventProducer != null)
+        if (basketEventProducer != null)
         	this.sendAddToBasketEvent(basket,request);
         return ResponseEntity.ok(new MessageResponse("Product added to basket successfully"));
     }
@@ -180,7 +176,7 @@ public class BasketController {
 		try {
 			AddToBasketEvent event = new AddToBasketEvent(request.getProductId(),request.getQuantity(),basket.getId());
 			// Envoyer l'événement à Kafka
-			addToBasketEventProducer.sendAddToBasketEvent(event);
+			basketEventProducer.sendAddToBasketEvent(event);
 			
 		} 
 		catch (Exception e) {

@@ -3,7 +3,6 @@ package com.example.events.producer;
 
 import com.example.events.config.KafkaConfig;
 import com.example.events.model.BasketViewEvent;
-import com.example.events.model.CategoryViewEvent;
 import com.example.events.service.FailedEventService;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -31,10 +30,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = {KafkaConfig.class, BasketEventProducer.class})
+@SpringBootTest(classes = {KafkaConfig.class, EventProducer.class})
 @ActiveProfiles("test")
 @EmbeddedKafka(
 	    partitions = 1,
@@ -48,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.*;
     private static final String TOPIC = "basket-view-events";
     
     @Autowired
-    private BasketEventProducer basketEventProducer;
+    private EventProducer basketEventProducer;
     
     @MockitoBean
     private FailedEventService failedEventService;

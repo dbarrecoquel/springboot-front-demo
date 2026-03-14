@@ -1,7 +1,7 @@
 package com.example.frontoffice.controller;
 
 import com.example.events.model.AddToBasketEvent;
-import com.example.events.producer.AddToBasketEventProducer;
+import com.example.events.producer.EventProducer;
 import com.example.product.model.Product;
 import com.example.product.service.ProductService;
 import com.example.shopping.model.Basket;
@@ -29,12 +29,12 @@ public class BasketController {
     private final ProductService productService;
     private final UserService userService;
 
-    private final AddToBasketEventProducer addToBasketEventProducer;
+    private final EventProducer addToBasketEventProducer;
     public BasketController(BasketService basketService,
                           ProductLineItemService lineItemService,
                           ProductService productService,
                           UserService userService,
-                          Optional<AddToBasketEventProducer> addToBasketEventProducer) {
+                          Optional<EventProducer> addToBasketEventProducer) {
         this.basketService = basketService;
         this.lineItemService = lineItemService;
         this.productService = productService;

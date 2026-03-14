@@ -7,7 +7,7 @@ import com.example.catalog.model.mapper.CategoryMapper;
 import com.example.catalog.service.CategoryService;
 import com.example.catalog.service.ProductCategoryAssignmentService;
 import com.example.events.model.CategoryViewEvent;
-import com.example.events.producer.CategoryEventProducer;
+import com.example.events.producer.EventProducer;
 import com.example.frontrest.models.CategoryResponse;
 import com.example.product.mapper.ProductMapper;
 import com.example.product.model.dto.ProductDto;
@@ -35,7 +35,7 @@ public class CatalogNavigationController {
     private final CategoryMapper categoryMapper;
     private final ProductMapper productMapper;
     private final UserService userService;
-    private final CategoryEventProducer categoryEventProducer;
+    private final EventProducer categoryEventProducer;
     
     // Injection par constructeur avec @Autowired optionnel
     public CatalogNavigationController(CategoryService categoryService,
@@ -44,7 +44,7 @@ public class CatalogNavigationController {
                                       CategoryMapper categoryMapper,
                                       ProductMapper productMapper,
                                       UserService userService,
-                                      Optional<CategoryEventProducer> categoryEventProducer) {
+                                      Optional<EventProducer> categoryEventProducer) {
         this.categoryService = categoryService;
         this.assignmentService = assignmentService;
         this.productService = productService;
