@@ -17,6 +17,15 @@ public class Basket {
     @Column(name = "session_id")
     private String sessionId; // Pour les utilisateurs non connectés
     
+    @Column(name = "billing_address_id")
+    private Long billingAddressId;
+    
+    @Column(name = "shipping_address_id")
+    private Long shippingAddressId;
+    
+    @Column(name = "status")
+    private String status = "ACTIVE";
+    
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
     
@@ -82,4 +91,28 @@ public class Basket {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+	public Long getBillingAddressId() {
+		return billingAddressId;
+	}
+
+	public void setBillingAddressId(Long billingAddressId) {
+		this.billingAddressId = billingAddressId;
+	}
+
+	public Long getShippingAddressId() {
+		return shippingAddressId;
+	}
+
+	public void setShippingAddressId(Long shippingAddressId) {
+		this.shippingAddressId = shippingAddressId;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
 }
