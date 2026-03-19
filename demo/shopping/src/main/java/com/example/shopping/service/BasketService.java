@@ -86,4 +86,13 @@ public class BasketService {
     public void deleteBasket(Long basketId) {
         basketRepository.deleteById(basketId);
     }
+    public Basket setCheckoutAddresses(Long basketId, Long billingAddressId, Long shippingAddressId) {
+    	Basket basket = basketRepository.findById(basketId).orElseThrow(() -> new RuntimeException("Basket not found: " + basketId));
+    	
+    	basket.setBillingAddressId(billingAddressId);
+    	basket.setShippingAddressId(shippingAddressId);
+    	basket.setStatus("CHECKOUT");
+    	
+    	return basketRepository.save(basket);
+    }
 }
