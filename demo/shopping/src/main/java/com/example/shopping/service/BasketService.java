@@ -95,4 +95,16 @@ public class BasketService {
     	
     	return basketRepository.save(basket);
     }
+    public Basket updateBasketStatus(Long basketId, String status) {
+    	Basket basket = basketRepository.findById(basketId).orElseThrow(() -> new RuntimeException("Basket not found: " + basketId));
+    	basket.setStatus(status);
+    	
+    	return basketRepository.save(basket);
+    }
+    public Basket setShippingMethod(Long basketId, Long shippingMethodId)
+    {
+    	Basket basket = basketRepository.findById(basketId).orElseThrow(() -> new RuntimeException("Basket not found"));
+    	basket.setShippingMethodId(shippingMethodId);
+    	return basketRepository.save(basket);
+    }
 }

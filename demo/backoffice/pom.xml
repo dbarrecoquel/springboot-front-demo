@@ -41,6 +41,11 @@
 		        <artifactId>address</artifactId>
 		        <version>${project.version}</version>
 		    </dependency>
+		    <dependency>
+		        <groupId>com.example</groupId>
+		        <artifactId>shipping-method</artifactId>
+		        <version>${project.version}</version>
+		    </dependency>
         <!-- Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
