@@ -13,9 +13,11 @@ public class Product {
     private Long id;
     
     @NotBlank(message = "Name is required")
+    @Column(columnDefinition = "TEXT")
     private String name;
     @NotBlank(message = "Sku is required")
     private String sku;
+    @Column(columnDefinition = "TEXT")
     private String description;
     
     @Positive(message = "Price must be positive")

@@ -4,9 +4,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -59,17 +61,44 @@ public class BasketController {
     /* ===================== VIEW BASKET ===================== */
     
     @GetMapping
-    public ResponseEntity<BasketResponse> viewBasket(Authentication authentication, HttpSession session) {
-        Basket basket = getOrCreateBasket(authentication, session);
+    public ResponseEntity<BasketResponse> viewBasket(
+            Authentication authentication,
+            @CookieValue(value = "guestId", required = false) String guestId
+    ) {
+
+        Basket basket;
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            // USER CONNECTÉ
+            User user = userService.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            basket = basketService.getOrCreateBasketForUser(user.getId());
+
+        } else {
+            // GUEST
+            if (guestId == null) {
+                guestId = UUID.randomUUID().toString();
+            }
+
+            basket = basketService.getOrCreateBasketForGuest(guestId);
+        }
+
         List<ProductLineItem> items = lineItemService.getLineItemsByBasketId(basket.getId());
         Double total = lineItemService.calculateBasketTotal(basket.getId());
-        
-        if (basketEventProducer != null)
-        	this.sendBasketViewEvent(basket,session);
+
         BasketResponse response = new BasketResponse(basket, items, total);
-        return ResponseEntity.ok(response);
+
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
+
+        // 👉 si guest → renvoyer cookie
+        if (authentication == null || !authentication.isAuthenticated()) {
+            responseBuilder.header("Set-Cookie",
+                    "guestId=" + guestId + "; Path=/; HttpOnly; SameSite=Lax");
+        }
+
+        return responseBuilder.body(response);
     }
-    
     /* ===================== ADD TO BASKET ===================== */
     
     @PostMapping("/add")

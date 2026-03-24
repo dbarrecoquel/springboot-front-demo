@@ -77,8 +77,7 @@ class CategoryEventConsumerTest {
             null,                  // parentCategoryId
             null,                  // parentCategoryName
             0,                     // depthLevel
-            3,                     // subcategoriesCount
-            15,                    // productsCount
+            3,                     // productsCount
             null,                  // userId
             "test-session-123",    // sessionId
             null                   // userEmail
@@ -107,7 +106,6 @@ class CategoryEventConsumerTest {
         assertNull(capturedEvent.getParentCategoryName());
         assertEquals(0, capturedEvent.getDepthLevel());
         assertEquals(3, capturedEvent.getSubcategoriesCount());
-        assertEquals(15, capturedEvent.getProductsCount());
         assertEquals("Électronique", capturedEvent.getBreadcrumbPath());
         assertNotNull(capturedEvent.getEventId());
         assertNotNull(capturedEvent.getTimestamp());
@@ -123,7 +121,6 @@ class CategoryEventConsumerTest {
             "Électronique",        // parentCategoryName
             1,                     // depthLevel
             2,                     // subcategoriesCount
-            8,                     // productsCount
             42L,                   // userId
             "session-abc",         // sessionId
             "user@example.com"     // userEmail
@@ -152,7 +149,6 @@ class CategoryEventConsumerTest {
         assertEquals("Électronique", capturedEvent.getParentCategoryName());
         assertEquals(1, capturedEvent.getDepthLevel());
         assertEquals(2, capturedEvent.getSubcategoriesCount());
-        assertEquals(8, capturedEvent.getProductsCount());
         assertEquals("Électronique > Smartphones", capturedEvent.getBreadcrumbPath());
         assertEquals(42L, capturedEvent.getUserId());
         assertEquals("user@example.com", capturedEvent.getUserEmail());
@@ -168,7 +164,6 @@ class CategoryEventConsumerTest {
             "Smartphones",
             2,
             0,
-            5,
             null,
             "session-xyz",
             null
@@ -205,7 +200,6 @@ class CategoryEventConsumerTest {
             null,
             0,
             5,
-            20,
             null,  // userId null
             "anonymous-session",
             null   // userEmail null
@@ -245,7 +239,6 @@ class CategoryEventConsumerTest {
                 null,
                 0,
                 i,
-                i * 5,
                 null,
                 "session-" + i,
                 null
@@ -271,7 +264,6 @@ class CategoryEventConsumerTest {
             null,
             0,
             0,  // Pas de sous-catégories
-            0,  // Pas de produits
             null,
             "test-session",
             null
@@ -293,7 +285,6 @@ class CategoryEventConsumerTest {
         
         CategoryViewEvent capturedEvent = eventCaptor.getValue();
         assertEquals(0, capturedEvent.getSubcategoriesCount());
-        assertEquals(0, capturedEvent.getProductsCount());
     }
     
     @Test
@@ -306,7 +297,6 @@ class CategoryEventConsumerTest {
             "Parent Category",
             3,
             7,
-            42,
             999L,
             "complete-session-id",
             "complete@example.com"
@@ -338,7 +328,6 @@ class CategoryEventConsumerTest {
         assertEquals("Parent Category", capturedEvent.getParentCategoryName(), "Parent category name mismatch");
         assertEquals(3, capturedEvent.getDepthLevel(), "Depth level mismatch");
         assertEquals(7, capturedEvent.getSubcategoriesCount(), "Subcategories count mismatch");
-        assertEquals(42, capturedEvent.getProductsCount(), "Products count mismatch");
         assertEquals(999L, capturedEvent.getUserId(), "User ID mismatch");
         assertEquals("complete-session-id", capturedEvent.getSessionId(), "Session ID mismatch");
         assertEquals("complete@example.com", capturedEvent.getUserEmail(), "User email mismatch");
@@ -353,7 +342,7 @@ class CategoryEventConsumerTest {
         // Given
         LocalDateTime before = LocalDateTime.now().minusSeconds(1);
         CategoryViewEvent event = new CategoryViewEvent(
-            1L, "Test", null, null, 0, 1, 5, null, "session", null
+            1L, "Test", null, null, 0, 1, null, "session", null
         );
         LocalDateTime after = LocalDateTime.now().plusSeconds(1);
         
@@ -389,7 +378,7 @@ class CategoryEventConsumerTest {
     void testConsumeCategoryViewEvent_NoExceptionThrown() {
         // Given
         CategoryViewEvent event = new CategoryViewEvent(
-            1L, "Safe Category", null, null, 0, 2, 10, null, "safe-session", null
+            1L, "Safe Category", null, null, 0, 2, null, "safe-session", null
         );
         
         // When & Then - Ne devrait pas lever d'exception

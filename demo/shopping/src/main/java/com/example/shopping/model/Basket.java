@@ -34,7 +34,8 @@ public class Basket {
     
     @Column(name = "shipping_method_id")
     private Long shippingMethodId;
-    
+    @Column(name = "guest_id")
+    private String guestId;
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -125,5 +126,13 @@ public class Basket {
 
 	public void setShippingMethodId(Long shippingMethodId) {
 		this.shippingMethodId = shippingMethodId;
+	}
+
+	public String getGuestId() {
+		return guestId;
+	}
+
+	public void setGuestId(String guestId) {
+		this.guestId = guestId;
 	}
 }

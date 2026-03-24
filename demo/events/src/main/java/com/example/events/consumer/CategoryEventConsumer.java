@@ -38,7 +38,6 @@ public class CategoryEventConsumer {
             event.getCategoryName(),
             event.getCategoryId(),
             event.getSubcategoriesCount(),
-            event.getProductsCount(),
             event.getUserEmail() != null ? event.getUserEmail() : "Anonymous",
             event.getDepthLevel());
             

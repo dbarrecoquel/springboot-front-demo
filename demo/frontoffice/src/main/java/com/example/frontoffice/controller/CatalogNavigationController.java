@@ -7,6 +7,9 @@ import com.example.catalog.service.CategoryService;
 import com.example.catalog.service.ProductCategoryAssignmentService;
 import com.example.product.model.Product;
 import com.example.product.service.ProductService;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,7 +45,7 @@ public class CatalogNavigationController {
     
     // Navigation dans une catégorie
     @GetMapping("/category/{id}")
-    public String viewCategory(@PathVariable Long id, Model model) {
+    public String viewCategory(@PathVariable Long id, Model model, Pageable pageable) {
         Category category = categoryService.getCategoryById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Catégorie invalide : " + id));
         
@@ -50,7 +53,7 @@ public class CatalogNavigationController {
         List<Category> subCategories = categoryService.getSubCategories(id);
         
         // Récupérer les produits de cette catégorie
-        List<ProductCategoryAssignment> assignments = assignmentService.getAssignmentsByCategoryId(id);
+        Page<ProductCategoryAssignment> assignments = assignmentService.getAssignmentsByCategoryId(id,pageable);
         List<Product> products = assignments.stream()
                 .map(assignment -> productService.getProductById(assignment.getProductId()).orElse(null))
                 .filter(product -> product != null)

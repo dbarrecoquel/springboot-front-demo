@@ -1,5 +1,25 @@
 package com.example.frontrest.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.example.catalog.dto.CategoryDto;
 import com.example.catalog.model.Category;
 import com.example.catalog.model.ProductCategoryAssignment;
@@ -10,21 +30,14 @@ import com.example.events.model.CategoryViewEvent;
 import com.example.events.producer.EventProducer;
 import com.example.frontrest.models.CategoryResponse;
 import com.example.product.mapper.ProductMapper;
+import com.example.product.model.Product;
 import com.example.product.model.dto.ProductDto;
 import com.example.product.service.ProductService;
 import com.example.user.model.User;
 import com.example.user.service.UserService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 @RestController
 @RequestMapping("/api")
 public class CatalogNavigationController {
@@ -79,13 +92,7 @@ public class CatalogNavigationController {
                 .map(categoryMapper::toDto)
                 .toList();
         
-        List<ProductDto> products = assignmentService.getAssignmentsByCategoryId(id)
-                .stream()
-                .map(ProductCategoryAssignment::getProductId)
-                .map(productService::getProductById)
-                .flatMap(Optional::stream)
-                .map(productMapper::toDto)
-                .collect(Collectors.toList());
+     
         
         List<Category> breadcrumbCategories = buildBreadcrumb(category);
         List<CategoryDto> breadcrumb = breadcrumbCategories
@@ -96,21 +103,90 @@ public class CatalogNavigationController {
         // Envoyer l'événement Kafka (si disponible)
         // Controller → sendCategoryViewEvent() → CategoryViewEvent (constructeur + setters) → Kafka Producer → JSON
         if (categoryEventProducer != null) {
-            sendCategoryViewEvent(category, subCategories.size(), products.size(), 
+            sendCategoryViewEvent(category, subCategories.size(), 
                                 breadcrumbCategories, authentication, request, session);
         }
         
         CategoryResponse response = new CategoryResponse(
                 categoryDto,
                 subCategories,
-                products,
                 breadcrumb
         );
         
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/categories/{id}/{subcat_id}")
+    public ResponseEntity<Page<ProductDto>>  viewSubCategory(@PathVariable Long id,
+    														@PathVariable Long subcat_id,
+                                                         Authentication authentication,
+                                                         HttpServletRequest request,
+                                                         HttpSession session,
+                                                         @PageableDefault(size = 10, page = 0, sort = "id") Pageable pageable) {
+    	
+    	return ResponseEntity.ok(getProductListByCategoryId(subcat_id,pageable));
+    }
     
-    private void sendCategoryViewEvent(Category category, int subcategoriesCount, int productsCount,
+    @GetMapping("/categories/{id}/products")
+    public ResponseEntity<Page<ProductDto>> getProductsByCategory(
+            @PathVariable Long id, 
+            @PageableDefault(size = 10, page = 0, sort = "id") Pageable pageable) { // Reçoit automatiquement ?page=0&size=10
+        
+        return ResponseEntity.ok(getProductListByCategoryId(id, pageable));
+    }
+    @GetMapping("/categories/{id}/products/{sku}")
+    public ResponseEntity<ProductDto> getProductBySku(@PathVariable Long id,@PathVariable String sku){
+    	Product p = productService.getProductBySku(sku).orElseThrow(() -> new IllegalArgumentException("Product invalide : " + sku));
+    	 
+    	return ResponseEntity.ok(productMapper.toDto(p));
+    }
+    @GetMapping("/products")
+    public ResponseEntity<Map<String,Object>> getAllProducts(
+    	@RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "id") String sortBy,
+        @RequestParam(defaultValue = "asc") String direction,
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) Double minPrice,
+        @RequestParam(required = false) Double maxPrice) {
+
+
+    return ResponseEntity.ok(getProductsReponse(page, size, sortBy, direction, search, minPrice, maxPrice));
+}
+    
+    private Map<String, Object> getProductsReponse(int page,
+            int size,
+            String sortBy,
+            String direction,
+            String search,
+            Double minPrice,
+            Double maxPrice){
+    	 Sort sort = direction.equalsIgnoreCase("desc")
+    	            ? Sort.by(sortBy).descending()
+    	            : Sort.by(sortBy).ascending();
+
+    	    Pageable pageable = PageRequest.of(page, size, sort);
+
+    	    Page<Product> pageResult = productService.findWithFilters(search, minPrice, maxPrice, pageable);
+
+    	    List<ProductDto> content = pageResult.getContent()
+    	            .stream()
+    	            .map(productMapper::toDto)
+    	            .collect(Collectors.toList());
+
+    	    Map<String, Object> response = new HashMap<>();
+    	    response.put("content", content);
+    	    response.put("page", pageResult.getNumber());
+    	    response.put("size", pageResult.getSize());
+    	    response.put("totalElements", pageResult.getTotalElements());
+    	    response.put("totalPages", pageResult.getTotalPages());
+    	    response.put("last", pageResult.isLast());
+    	    
+    	    return response;
+    	
+    }
+    
+    
+    private void sendCategoryViewEvent(Category category, int subcategoriesCount,
                                       List<Category> breadcrumb, Authentication authentication,
                                       HttpServletRequest request, HttpSession session) {
         try {
@@ -135,7 +211,6 @@ public class CatalogNavigationController {
                 parentCategoryName,
                 depthLevel,
                 subcategoriesCount,
-                productsCount,
                 getUserId(authentication),
                 session.getId(),
                 getUserEmail(authentication)
@@ -215,4 +290,25 @@ public class CatalogNavigationController {
         }
         return ip;
     }
+    private Page<ProductDto> getProductListByCategoryId(Long id, Pageable pageable) {
+        // 1. Récupérer uniquement la page d'assignations (ex: 20 lignes)
+        Page<ProductCategoryAssignment> assignmentPage = 
+            assignmentService.getAssignmentsByCategoryId(id, pageable);
+
+        // 2. Extraire la liste des IDs de produits de cette page
+        List<Long> productIds = assignmentPage.getContent().stream()
+                .map(ProductCategoryAssignment::getProductId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 3. Récupérer TOUS les produits concernés en UNE SEULE requête SQL
+        Map<Long, ProductDto> productsMap = productService.findAllByIds(productIds)
+                .stream()
+                .map(productMapper::toDto)
+                .collect(Collectors.toMap(ProductDto::getId, dto -> dto));
+
+        // 4. Transformer la Page d'assignations en Page de DTOs en utilisant la Map
+        return assignmentPage.map(assignment -> productsMap.get(assignment.getProductId()));
+    }
+    
 }

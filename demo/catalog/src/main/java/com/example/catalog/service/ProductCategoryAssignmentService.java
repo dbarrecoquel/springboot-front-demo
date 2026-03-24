@@ -3,6 +3,9 @@ package com.example.catalog.service;
 
 import com.example.catalog.model.ProductCategoryAssignment;
 import com.example.catalog.repository.ProductCategoryAssignmentRepository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +25,8 @@ public class ProductCategoryAssignmentService {
         return assignmentRepository.findByProductId(productId);
     }
     
-    public List<ProductCategoryAssignment> getAssignmentsByCategoryId(Long categoryId) {
-        return assignmentRepository.findByCategoryId(categoryId);
+    public Page<ProductCategoryAssignment> getAssignmentsByCategoryId(Long categoryId, Pageable pageable) {
+        return assignmentRepository.findByCategoryId(categoryId, pageable);
     }
     
     public ProductCategoryAssignment assignProductToCategory(Long productId, Long categoryId) {

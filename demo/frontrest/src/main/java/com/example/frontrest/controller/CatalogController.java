@@ -36,13 +36,13 @@ public class CatalogController {
         return ResponseEntity.ok("FrontRest API is running!");
     }
     
-    @GetMapping
+    @GetMapping("/products")
     public ResponseEntity<List<Product>> getAllProducts() {
         List<Product> products = productService.getAllProducts();
         return ResponseEntity.ok(products);
     }
     
-    @GetMapping("/{id}")
+    @GetMapping("/products/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id,
                                                   Authentication authentication,
                                                   HttpServletRequest request,

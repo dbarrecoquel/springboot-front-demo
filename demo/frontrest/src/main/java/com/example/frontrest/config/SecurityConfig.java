@@ -15,67 +15,102 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
+    
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         http
             // Désactiver CSRF pour l'API REST
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/api/**")
+            )
             
-            // Activer CORS
+            // CORS - IMPORTANT : doit être avant authorizeHttpRequests
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
+            
             // Configuration des autorisations
             .authorizeHttpRequests(auth -> auth
                 // Endpoints publics
                 .requestMatchers(
-                        "/api/auth/**",
-                        "/api/categories/**",
-                        "/api/catalog/**",
-                        "/api/basket/**",
-                        "/api/products/**",
-                        "/error"
+                    "/",
+                    "/login",
+                    "/register",
+                    "/api/**",  // Simplifier : tout /api/** est public par défaut
+                    "/catalog/**",
+                    "/products/**",
+                    "/basket/**",
+                    "/css/**",
+                    "/js/**",
+                    "/images/**",
+                    "/error"
                 ).permitAll()
-
+                
                 // Endpoints privés
-                .requestMatchers("/api/profile/**").authenticated()
-
-                // Tout le reste est permis par défaut
+                .requestMatchers("/api/profile/**", "/profile/**").authenticated()
+                .requestMatchers("/api/checkout/**", "/checkout/**").authenticated()
+                
+                // Tout le reste
                 .anyRequest().permitAll()
             )
-
-            // Configuration de la gestion des sessions (stateless pour API REST)
+            
+            // Sessions IF_REQUIRED
             .sessionManagement(session -> session
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
-
-            // Désactiver les formulaires de login et basic auth
-            .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable());
-
+            
+            // Formulaire de login
+            .formLogin(form -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/", true)
+                .permitAll()
+            )
+            
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/")
+                .permitAll()
+            );
+        
         return http.build();
     }
-
+    
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("*"));
+        
+        // IMPORTANT : Utiliser setAllowedOriginPatterns au lieu de setAllowedOrigins
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        
+        configuration.setAllowedMethods(Arrays.asList(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
+        ));
+        
+        configuration.setAllowedHeaders(Arrays.asList(
+            "*"
+        ));
+        
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "Content-Disposition"
+        ));
+        
+        // Autoriser les credentials (cookies)
+        configuration.setAllowCredentials(true);
+        
         configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
+        
+        // Appliquer à TOUS les endpoints
+        source.registerCorsConfiguration("/**", configuration);
+        
         return source;
     }
-
+    
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration configuration) throws Exception {
