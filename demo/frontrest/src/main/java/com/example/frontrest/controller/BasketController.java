@@ -161,8 +161,12 @@ public class BasketController {
     /* ===================== GET BASKET COUNT ===================== */
     
     @GetMapping("/count")
-    public ResponseEntity<Map<String, Integer>> getBasketCount(Authentication authentication, HttpSession session) {
-        Basket basket = getOrCreateBasket(authentication, session);
+    public ResponseEntity<Map<String, Integer>> getBasketCount(Authentication authentication,@CookieValue(value = "guestId", required = false) String guestId) {
+    	if (guestId == null) {
+            guestId = UUID.randomUUID().toString();
+        }
+    	
+    	Basket basket = getBasket(authentication, guestId);
         int count = lineItemService.getBasketItemCount(basket.getId());
         
         Map<String, Integer> response = new HashMap<>();
@@ -171,21 +175,7 @@ public class BasketController {
         return ResponseEntity.ok(response);
     }
     
-    /* ===================== UTILITY METHOD ===================== */
     
-    private Basket getOrCreateBasket(Authentication authentication, HttpSession session) {
-        Long userId = null;
-        String sessionId = session.getId();
-        
-        if (authentication != null && authentication.isAuthenticated()) {
-            User user = userService.findByEmail(authentication.getName()).orElse(null);
-            if (user != null) {
-                userId = user.getId();
-            }
-        }
-        
-        return basketService.getOrCreateBasket(userId, sessionId);
-    }
     
     private void sendBasketViewEvent(Basket basket,
             HttpSession session) {
