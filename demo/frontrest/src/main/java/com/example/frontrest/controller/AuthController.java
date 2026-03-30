@@ -60,7 +60,10 @@ public class AuthController {
             UserDto userDto = userMapper.toDto(user);
             
             
-            return ResponseEntity.ok().header("Authorization", "Bearer " + token).body(userDto);
+            return ResponseEntity.ok()
+                    .header("Authorization", "Bearer " + token)
+                    .header("Access-Control-Expose-Headers", "Authorization") 
+                    .body(userDto);
             
         } catch (AuthenticationException e) {
             return ResponseEntity

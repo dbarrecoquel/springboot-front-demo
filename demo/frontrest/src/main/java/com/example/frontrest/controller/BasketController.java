@@ -65,24 +65,12 @@ public class BasketController {
             Authentication authentication,
             @CookieValue(value = "guestId", required = false) String guestId
     ) {
-
-        Basket basket;
-
-        if (authentication != null && authentication.isAuthenticated()) {
-            // USER CONNECTÉ
-            User user = userService.findByEmail(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            basket = basketService.getOrCreateBasketForUser(user.getId());
-
-        } else {
-            // GUEST
-            if (guestId == null) {
-                guestId = UUID.randomUUID().toString();
-            }
-
-            basket = basketService.getOrCreateBasketForGuest(guestId);
+    	 // GUEST
+        if (guestId == null) {
+            guestId = UUID.randomUUID().toString();
         }
+        Basket basket = getBasket(authentication, guestId);
+
 
         List<ProductLineItem> items = lineItemService.getLineItemsByBasketId(basket.getId());
         Double total = lineItemService.calculateBasketTotal(basket.getId());
@@ -94,7 +82,7 @@ public class BasketController {
         // 👉 si guest → renvoyer cookie
         if (authentication == null || !authentication.isAuthenticated()) {
             responseBuilder.header("Set-Cookie",
-                    "guestId=" + guestId + "; Path=/; HttpOnly; SameSite=Lax");
+                    "guestId=" + guestId + "; Path=/; HttpOnly; SameSite=None; Secure");
         }
 
         return responseBuilder.body(response);
@@ -104,11 +92,18 @@ public class BasketController {
     @PostMapping("/add")
     public ResponseEntity<MessageResponse> addToBasket(@Valid @RequestBody AddToBasketRequest request,
                                                       Authentication authentication,
-                                                      HttpSession session) {
+                                                      HttpSession session,
+                                                      @CookieValue(value = "guestId", required = false) String guestId                                          
+    												) {
+    	
+    	 // GUEST
+        if (guestId == null) {
+            guestId = UUID.randomUUID().toString();
+        }
         Product product = productService.getProductById(request.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found: " + request.getProductId()));
         
-        Basket basket = getOrCreateBasket(authentication, session);
+        Basket basket = getBasket(authentication, guestId);
         lineItemService.addOrUpdateLineItem(
             basket.getId(), 
             request.getProductId(), 
@@ -117,7 +112,14 @@ public class BasketController {
         );
         if (basketEventProducer != null)
         	this.sendAddToBasketEvent(basket,request);
-        return ResponseEntity.ok(new MessageResponse("Product added to basket successfully"));
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
+
+        // 👉 si guest → renvoyer cookie
+        if (authentication == null || !authentication.isAuthenticated()) {
+            responseBuilder.header("Set-Cookie",
+                    "guestId=" + guestId + "; Path=/; HttpOnly; SameSite=None; Secure");
+        }
+        return responseBuilder.body(new MessageResponse("Product added to basket successfully"));
     }
     
     /* ===================== UPDATE QUANTITY ===================== */
@@ -145,8 +147,13 @@ public class BasketController {
     /* ===================== CLEAR BASKET ===================== */
     
     @DeleteMapping("/clear")
-    public ResponseEntity<MessageResponse> clearBasket(Authentication authentication, HttpSession session) {
-        Basket basket = getOrCreateBasket(authentication, session);
+    public ResponseEntity<MessageResponse> clearBasket(Authentication authentication, @CookieValue(value = "guestId", required = false) String guestId) {
+    	if (guestId == null) {
+            guestId = UUID.randomUUID().toString();
+        }
+    	
+    	Basket basket = getBasket(authentication, guestId);
+        
         lineItemService.clearBasket(basket.getId());
         return ResponseEntity.ok(new MessageResponse("Basket cleared successfully"));
     }
@@ -212,5 +219,23 @@ public class BasketController {
 			// Log l'erreur mais ne pas bloquer la requête
 			System.err.println("Error sending ProductViewEvent: " + e.getMessage());
 		}
+    }
+    
+    private Basket getBasket(Authentication authentication, String guestId) {
+    	Basket basket;
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            // USER CONNECTÉ
+            User user = userService.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            basket = basketService.getOrCreateBasketForUser(user.getId());
+
+        } else {
+           
+
+            basket = basketService.getOrCreateBasketForGuest(guestId);
+        }
+        return basket;
     }
 }

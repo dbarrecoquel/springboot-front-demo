@@ -8,6 +8,8 @@ import com.example.user.model.User;
 import com.example.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +39,7 @@ public class CatalogController {
     }
     
     @GetMapping("/products")
-    public ResponseEntity<List<Product>> getAllProducts() {
+    public ResponseEntity<List<Product>> getAllProducts(Pageable pageable) {
         List<Product> products = productService.getAllProducts();
         return ResponseEntity.ok(products);
     }
