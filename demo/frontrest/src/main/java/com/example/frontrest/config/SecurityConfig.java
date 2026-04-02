@@ -1,5 +1,6 @@
 package com.example.frontrest.config;
 
+import com.example.frontrest.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -7,30 +8,32 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
     
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+    
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             // Désactiver CSRF pour l'API REST
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/**")
-            )
+            .csrf(csrf -> csrf.disable())
             
-            // CORS - IMPORTANT : doit être avant authorizeHttpRequests
+            // CORS
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             
             // Configuration des autorisations
@@ -38,43 +41,48 @@ public class SecurityConfig {
                 // Endpoints publics
                 .requestMatchers(
                     "/",
-                    "/login",
-                    "/register",
-                    "/api/**",  // Simplifier : tout /api/** est public par défaut
-                    "/catalog/**",
-                    "/products/**",
-                    "/basket/**",
+                    "/api/auth/**",
+                    "/api/categories/**",
+                    "/api/catalog/**",
+                    "/api/products/**",
+                    "/api/health/**",
                     "/css/**",
                     "/js/**",
                     "/images/**",
                     "/error"
                 ).permitAll()
                 
+                // Endpoints semi-publics (basket peut être anonyme ou authentifié)
+                .requestMatchers("/api/basket/**").permitAll()
+                
                 // Endpoints privés
-                .requestMatchers("/api/profile/**", "/profile/**").authenticated()
-                .requestMatchers("/api/checkout/**", "/checkout/**").authenticated()
+                .requestMatchers("/api/profile/**").authenticated()
+                .requestMatchers("/api/checkout/**").authenticated()
                 
                 // Tout le reste
-                .anyRequest().permitAll()
+                .anyRequest().authenticated()
             )
             
-            // Sessions IF_REQUIRED
+            // Sessions STATELESS pour JWT
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             
-            // Formulaire de login
-            .formLogin(form -> form
-                .loginPage("/login")
-                .defaultSuccessUrl("/", true)
-                .permitAll()
+            // Désactiver le formulaire de login
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
+            
+            // Gestion des erreurs d'authentification
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    System.out.println("Authentication failed: " + authException.getMessage());
+                    response.setContentType("application/json");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"" + authException.getMessage() + "\"}");
+                })
             )
             
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
-                .permitAll()
-            );
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }
@@ -83,16 +91,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // IMPORTANT : Utiliser setAllowedOriginPatterns au lieu de setAllowedOrigins
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         
         configuration.setAllowedMethods(Arrays.asList(
             "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
         ));
         
-        configuration.setAllowedHeaders(Arrays.asList(
-            "*"
-        ));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
         
         configuration.setExposedHeaders(Arrays.asList(
             "Authorization",
@@ -100,14 +105,10 @@ public class SecurityConfig {
             "Content-Disposition"
         ));
         
-        // Autoriser les credentials (cookies)
         configuration.setAllowCredentials(true);
-        
         configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        
-        // Appliquer à TOUS les endpoints
         source.registerCorsConfiguration("/**", configuration);
         
         return source;
@@ -119,20 +120,5 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
     
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                    .allowedOrigins("http://localhost:4200")
-                    .allowedMethods("*")
-                    .allowCredentials(true);
-            }
-        };
-    }
+   
 }

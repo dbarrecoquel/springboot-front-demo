@@ -10,6 +10,8 @@ public class BasketResponse {
     private List<ProductLineItem> items;
     private Double total;
     private Integer itemCount;
+    private Long billingAddressId;
+    private Long shippingAddressId;
     
     public BasketResponse() {
     }
@@ -52,4 +54,20 @@ public class BasketResponse {
     public void setItemCount(Integer itemCount) {
         this.itemCount = itemCount;
     }
+
+	public Long getBillingAddressId() {
+		return billingAddressId;
+	}
+
+	public void setBillingAddressId(Long billingAddressId) {
+		this.billingAddressId = billingAddressId;
+	}
+
+	public Long getShippingAddressId() {
+		return shippingAddressId;
+	}
+
+	public void setShippingAddressId(Long shippingAddressId) {
+		this.shippingAddressId = shippingAddressId;
+	}
 }

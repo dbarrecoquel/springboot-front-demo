@@ -39,11 +39,15 @@ public class ProfileController {
     
     @GetMapping
     public ResponseEntity<UserDto> getProfile(Authentication authentication) {
+
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         User user = userService.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        UserDto userDto = userMapper.toDto(user);
-        return ResponseEntity.ok(userDto);
+
+        return ResponseEntity.ok(userMapper.toDto(user));
     }
     
     @PutMapping

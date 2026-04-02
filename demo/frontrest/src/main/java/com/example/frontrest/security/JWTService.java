@@ -2,7 +2,6 @@ package com.example.frontrest.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,8 +15,7 @@ import java.util.function.Function;
 @Service
 public class JWTService {
     
-    // Clé secrète (devrait être dans application.properties en prod)
-    @Value("${jwt.secret:mySecretKeyThatIsAtLeast256BitsLongForHS256Algorithm}")
+    @Value("${jwt.secret:mySecretKeyThatIsAtLeast256BitsLongForHS256AlgorithmSecureKey}")
     private String secret;
     
     @Value("${jwt.expiration:86400000}") // 24h par défaut
@@ -27,7 +25,6 @@ public class JWTService {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
     
-    // Générer un token
     public String generateToken(String email, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
@@ -47,17 +44,14 @@ public class JWTService {
                 .compact();
     }
     
-    // Extraire l'email du token
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
     
-    // Extraire le userId du token
     public Long extractUserId(String token) {
         return extractClaim(token, claims -> claims.get("userId", Long.class));
     }
     
-    // Extraire une claim spécifique
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
@@ -71,7 +65,6 @@ public class JWTService {
                 .getPayload();
     }
     
-    // Vérifier si le token est expiré
     public Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
@@ -80,7 +73,6 @@ public class JWTService {
         return extractClaim(token, Claims::getExpiration);
     }
     
-    // Valider le token
     public Boolean validateToken(String token, String email) {
         final String extractedEmail = extractEmail(token);
         return (extractedEmail.equals(email) && !isTokenExpired(token));
