@@ -3,6 +3,11 @@ package com.example.user.service;
 import com.example.user.dto.UserRegistrationDto;
 import com.example.user.model.User;
 import com.example.user.repository.UserRepository;
+
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,7 +17,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class UserService {
+public class UserService implements UserDetailsService {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -65,5 +70,17 @@ public class UserService {
     
     public User updateUser(User user) {
         return userRepository.save(user);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) {
+        User user = findByEmail(email)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return new org.springframework.security.core.userdetails.User(
+            user.getEmail(),
+            user.getPassword(),
+            List.of(new SimpleGrantedAuthority(user.getRole()))
+        );
     }
 }
