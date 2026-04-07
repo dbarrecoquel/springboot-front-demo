@@ -1,6 +1,7 @@
 package com.example.user.service;
 
 import com.example.user.dto.UserRegistrationDto;
+import com.example.user.model.UpdatePasswordRequest;
 import com.example.user.model.User;
 import com.example.user.repository.UserRepository;
 
@@ -71,7 +72,21 @@ public class UserService implements UserDetailsService {
     public User updateUser(User user) {
         return userRepository.save(user);
     }
+    public void changePassword(String email, UpdatePasswordRequest request) {
+        User user = findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid old password");
+        }
+
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new RuntimeException("Passwords do not match");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        userRepository.save(user);
+    }
     @Override
     public UserDetails loadUserByUsername(String email) {
         User user = findByEmail(email)
