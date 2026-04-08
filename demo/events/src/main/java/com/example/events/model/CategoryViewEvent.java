@@ -34,8 +34,6 @@ public class CategoryViewEvent {
     @JsonProperty("subcategories_count")
     private Integer subcategoriesCount;
     
-    @JsonProperty("products_count")
-    private Integer productsCount;
     
     @JsonProperty("user_id")
     private Long userId;
@@ -70,7 +68,7 @@ public class CategoryViewEvent {
     // Constructeur complet
     public CategoryViewEvent(Long categoryId, String categoryName, 
                             Long parentCategoryId, String parentCategoryName,
-                            Integer depthLevel, Integer subcategoriesCount, Integer productsCount,
+                            Integer depthLevel, Integer subcategoriesCount,
                             Long userId, String sessionId, String userEmail) {
         this();
         this.categoryId = categoryId;
@@ -79,7 +77,6 @@ public class CategoryViewEvent {
         this.parentCategoryName = parentCategoryName;
         this.depthLevel = depthLevel;
         this.subcategoriesCount = subcategoriesCount;
-        this.productsCount = productsCount;
         this.userId = userId;
         this.sessionId = sessionId;
         this.userEmail = userEmail;
@@ -138,13 +135,7 @@ public class CategoryViewEvent {
 		this.subcategoriesCount = subcategoriesCount;
 	}
 
-	public Integer getProductsCount() {
-		return productsCount;
-	}
-
-	public void setProductsCount(Integer productsCount) {
-		this.productsCount = productsCount;
-	}
+	
 
 	public Long getUserId() {
 		return userId;

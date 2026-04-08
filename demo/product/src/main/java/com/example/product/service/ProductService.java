@@ -4,6 +4,10 @@ package com.example.product.service;
 import com.example.product.model.Product;
 import com.example.product.repository.ProductRepository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +36,22 @@ public class ProductService {
         return productRepository.save(product);
     }
     
+    public Optional<Product> getProductBySku(String sku) {
+    	
+    	return productRepository.findBySku(sku);
+    }
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
     }
+
+    public Page<Product> findWithFilters(String keyword,
+            Double minPrice, Double maxPrice,
+            Pageable pageable) {
+
+        return productRepository.findWithFilters(keyword, minPrice, maxPrice, pageable);
+    }
+
+	public List<Product> findAllByIds(List<Long> productIds) {
+		return productRepository.findAllById(productIds);
+	}
 }

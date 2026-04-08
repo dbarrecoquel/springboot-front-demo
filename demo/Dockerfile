@@ -14,6 +14,7 @@ COPY catalog/pom.xml catalog/pom.xml
 COPY user/pom.xml user/pom.xml
 COPY address/pom.xml address/pom.xml
 COPY shopping/pom.xml shopping/pom.xml
+COPY shipping-method/pom.xml shipping-method/pom.xml
 COPY events/pom.xml events/pom.xml
 COPY frontoffice/pom.xml frontoffice/pom.xml
 COPY backoffice/pom.xml backoffice/pom.xml
@@ -31,6 +32,7 @@ COPY catalog catalog
 COPY user user
 COPY address address
 COPY shopping shopping
+COPY shipping-method shipping-method
 COPY events events
 COPY frontoffice frontoffice
 COPY backoffice backoffice

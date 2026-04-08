@@ -94,8 +94,7 @@ import static org.junit.jupiter.api.Assertions.*;
             null,                  // parentCategoryId
             null,                  // parentCategoryName
             0,                     // depthLevel
-            3,                     // subcategoriesCount
-            15,                    // productsCount
+            3,                     // productsCount
             null,                  // userId
             "test-session-789",    // sessionId
             null                   // userEmail
@@ -117,7 +116,6 @@ import static org.junit.jupiter.api.Assertions.*;
         assertEquals("Électronique", receivedEvent.getCategoryName());
         assertEquals(0, receivedEvent.getDepthLevel());
         assertEquals(3, receivedEvent.getSubcategoriesCount());
-        assertEquals(15, receivedEvent.getProductsCount());
         assertEquals("Électronique", receivedEvent.getBreadcrumbPath());
         assertNotNull(receivedEvent.getEventId());
         assertNotNull(receivedEvent.getTimestamp());
@@ -132,8 +130,7 @@ import static org.junit.jupiter.api.Assertions.*;
             1L,                    // parentCategoryId
             "Électronique",        // parentCategoryName
             1,                     // depthLevel
-            2,                     // subcategoriesCount
-            8,                     // productsCount
+            2,                    
             42L,                   // userId
             "session-abc",         // sessionId
             "user@example.com"     // userEmail
@@ -171,7 +168,6 @@ import static org.junit.jupiter.api.Assertions.*;
             "Smartphones",
             2,
             0,
-            5,
             null,
             "session-xyz",
             null
@@ -194,9 +190,9 @@ import static org.junit.jupiter.api.Assertions.*;
     @Test
     void testMultipleCategoryEvents() throws InterruptedException {
         // Given
-        CategoryViewEvent event1 = new CategoryViewEvent(1L, "Cat1", null, null, 0, 2, 10, null, "s1", null);
-        CategoryViewEvent event2 = new CategoryViewEvent(2L, "Cat2", null, null, 0, 3, 15, null, "s2", null);
-        CategoryViewEvent event3 = new CategoryViewEvent(3L, "Cat3", null, null, 0, 1, 5, null, "s3", null);
+        CategoryViewEvent event1 = new CategoryViewEvent(1L, "Cat1", null, null, 0, 2,  null, "s1", null);
+        CategoryViewEvent event2 = new CategoryViewEvent(2L, "Cat2", null, null, 0, 3, null, "s2", null);
+        CategoryViewEvent event3 = new CategoryViewEvent(3L, "Cat3", null, null, 0, 1,  null, "s3", null);
         
         // When
         categoryEventProducer.sendCategoryViewEvent(event1);

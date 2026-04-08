@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface BasketRepository extends JpaRepository<Basket, Long> {
     Optional<Basket> findByUserId(Long userId);
     Optional<Basket> findBySessionId(String sessionId);
+    Optional<Basket> findByGuestId(String guestId);
 }

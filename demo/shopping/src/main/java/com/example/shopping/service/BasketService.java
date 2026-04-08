@@ -30,6 +30,11 @@ public class BasketService {
                     .orElseGet(() -> createBasket(null, sessionId));
         }
     }
+    public Basket getOrCreateBasketForUser(Long userId) {
+    	
+    	  return basketRepository.findByUserId(userId)
+                  .orElseGet(() -> createBasket(userId, null));
+    }
     
     private Basket createBasket(Long userId, String sessionId) {
         Basket basket = new Basket(userId, sessionId);
@@ -94,5 +99,25 @@ public class BasketService {
     	basket.setStatus("CHECKOUT");
     	
     	return basketRepository.save(basket);
+    }
+    public Basket updateBasketStatus(Long basketId, String status) {
+    	Basket basket = basketRepository.findById(basketId).orElseThrow(() -> new RuntimeException("Basket not found: " + basketId));
+    	basket.setStatus(status);
+    	
+    	return basketRepository.save(basket);
+    }
+    public Basket setShippingMethod(Long basketId, Long shippingMethodId)
+    {
+    	Basket basket = basketRepository.findById(basketId).orElseThrow(() -> new RuntimeException("Basket not found"));
+    	basket.setShippingMethodId(shippingMethodId);
+    	return basketRepository.save(basket);
+    }
+    public Basket getOrCreateBasketForGuest(String guestId) {
+        return basketRepository.findByGuestId(guestId)
+                .orElseGet(() -> {
+                    Basket basket = new Basket();
+                    basket.setGuestId(guestId);
+                    return basketRepository.save(basket);
+                });
     }
 }

@@ -181,7 +181,7 @@ class KafkaIntegrationTest {
     void testCategoryEventEndToEnd() throws InterruptedException {
         // Given
         CategoryViewEvent event = new CategoryViewEvent(
-            1L, "Test Category", null, null, 0, 2, 5, null, "session-456", null
+            1L, "Test Category", null, null, 0, 2, null, "session-456", null
         );
         event.setBreadcrumbPath("Test Category");
         
@@ -200,7 +200,6 @@ class KafkaIntegrationTest {
         assertEquals("Test Category", receivedEvent.getCategoryName());
         assertEquals(0, receivedEvent.getDepthLevel());
         assertEquals(2, receivedEvent.getSubcategoriesCount());
-        assertEquals(5, receivedEvent.getProductsCount());
         assertEquals("Test Category", receivedEvent.getBreadcrumbPath());
         assertNotNull(receivedEvent.getEventId());
         assertNotNull(receivedEvent.getTimestamp());
@@ -244,7 +243,7 @@ class KafkaIntegrationTest {
         );
         
         CategoryViewEvent categoryEvent = new CategoryViewEvent(
-            88L, "Category 88", null, null, 0, 1, 10, null, "session-888", null
+            88L, "Category 88", null, null, 0, 1, null, "session-888", null
         );
         
         // When
@@ -270,7 +269,7 @@ class KafkaIntegrationTest {
         );
         
         CategoryViewEvent categoryEvent = new CategoryViewEvent(
-            88L, "Category 88", null, null, 0, 1, 10, null, "session-888", null
+            88L, "Category 88", null, null, 0, 1, null, "session-888", null
         );
         LocalDateTime now = LocalDateTime.now();
    		BasketViewEvent basketEvent = new BasketViewEvent(

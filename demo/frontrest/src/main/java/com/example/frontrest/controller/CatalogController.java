@@ -8,6 +8,8 @@ import com.example.user.model.User;
 import com.example.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -36,13 +38,13 @@ public class CatalogController {
         return ResponseEntity.ok("FrontRest API is running!");
     }
     
-    @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
+    @GetMapping("/products")
+    public ResponseEntity<List<Product>> getAllProducts(Pageable pageable) {
         List<Product> products = productService.getAllProducts();
         return ResponseEntity.ok(products);
     }
     
-    @GetMapping("/{id}")
+    @GetMapping("/products/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id,
                                                   Authentication authentication,
                                                   HttpServletRequest request,

@@ -6,12 +6,14 @@ import com.example.address.model.Address;
 import com.example.address.service.AddressService;
 import com.example.user.dto.UserDto;
 import com.example.user.mapper.UserMapper;
+import com.example.user.model.UpdatePasswordRequest;
 import com.example.user.model.User;
 import com.example.user.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,11 +41,15 @@ public class ProfileController {
     
     @GetMapping
     public ResponseEntity<UserDto> getProfile(Authentication authentication) {
+
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         User user = userService.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        UserDto userDto = userMapper.toDto(user);
-        return ResponseEntity.ok(userDto);
+
+        return ResponseEntity.ok(userMapper.toDto(user));
     }
     
     @PutMapping
@@ -152,6 +158,20 @@ public class ProfileController {
         }
         
         addressService.deleteAddress(id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @PutMapping("/password")
+    public ResponseEntity<Void> updatePassword(
+        Authentication auth,
+        @Valid @RequestBody UpdatePasswordRequest request
+    ) {
+        if (auth == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    
+        userService.changePassword(auth.getName(), request);
+
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,7 @@
 package com.example.frontoffice.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +18,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.address.model.Address;
 import com.example.address.service.AddressService;
+import com.example.shippingmethod.model.ShippingMethod;
+import com.example.shippingmethod.service.ShippingMethodService;
 import com.example.shopping.model.Basket;
 import com.example.shopping.model.ProductLineItem;
+import com.example.shopping.service.BasketCalculationService;
 import com.example.shopping.service.BasketService;
 import com.example.shopping.service.ProductLineItemService;
 import com.example.user.model.User;
@@ -37,14 +41,20 @@ public class CheckoutController {
     private final AddressService addressService;
     private final ProductLineItemService lineItemService;
     private final UserService userService;
+    private final ShippingMethodService shippingMethodService;
+    private final BasketCalculationService calcService ;
 	public CheckoutController(BasketService basketService, AddressService addressService, 
 								ProductLineItemService lineItemService,
-								UserService userService) {
+								UserService userService,
+								ShippingMethodService shippingMethodService,
+								BasketCalculationService calcService) {
 		
 		this.basketService = basketService;
 		this.addressService = addressService;
 		this.lineItemService = lineItemService;
 		this.userService = userService;
+		this.shippingMethodService = shippingMethodService;
+		this.calcService = calcService;
 		
 	}
 	
@@ -81,7 +91,7 @@ public class CheckoutController {
 	}
 	
 	@PostMapping("/addresses")
-	public String setCheckoutAddresses(@RequestParam Long shippingId, @RequestParam Long billingId,
+	public String setCheckoutAddresses(@RequestParam Long shippingAddressId, @RequestParam Long billingAddressId,
 										Authentication authentication,
 										HttpSession session,
 										RedirectAttributes redirectAttributes) {
@@ -93,17 +103,15 @@ public class CheckoutController {
 		
 		Basket basket = basketService.getOrCreateBasket(user.getId(), session.getId());
 		
-		Address shippingAddress = addressService.getAddressById(shippingId).orElseThrow(() -> new RuntimeException("Address not found"));
+		Address shippingAddress = addressService.getAddressById(shippingAddressId).orElseThrow(() -> new RuntimeException("Address not found"));
 		
-		Address billingAddress = addressService.getAddressById(billingId).orElseThrow(() -> new RuntimeException("Address not found"));
+		Address billingAddress = addressService.getAddressById(billingAddressId).orElseThrow(() -> new RuntimeException("Address not found"));
 		
-		basketService.setCheckoutAddresses(basket.getId(), billingId, shippingId);
-		
-		addressService.getAddressById(shippingId).orElseThrow(() -> new RuntimeException("Address not found"));
+		basketService.setCheckoutAddresses(basket.getId(), billingAddress.getId(), shippingAddress.getId());
 		
 		
 		
-		return "checkout-shipping-method";
+		return "redirect:/checkout/shipping";
 		
 	}
 	
@@ -155,5 +163,68 @@ public class CheckoutController {
 		
 	}
 	
+	@GetMapping("/shipping")
+	public String viewShippingMethods(Authentication auth, HttpSession session,Model model) {
+		
+		if (auth == null || !auth.isAuthenticated())
+			return "redirect:/login";
+		
+		User user = userService.findByEmail(auth.getName()).orElseThrow(() -> new RuntimeException("User not found"));
+		
+		Basket basket = basketService.getOrCreateBasket(user.getId(), session.getId());
+		
+		if (basket.getShippingAddressId() == null || basket.getBillingAddressId() == null)
+			return "redirect:/checkout/addresses";
+		
+		Address shippingAddress = addressService.getAddressById(basket.getShippingAddressId()).orElseThrow(()-> new RuntimeException("No shipping address"));
+		
+		List<ShippingMethod> availableShippingMethod = shippingMethodService.getAvailaShippingMethods(shippingAddress.getCountry());
+		
+		List<ProductLineItem> lineItems = lineItemService.getLineItemsByBasketId(basket.getId());
+		
+		Map<String, Double> totals = calcService.calculateBasketTotals(basket);
+		
+		model.addAttribute("basket", basket);
+	    model.addAttribute("items", lineItems);
+	    model.addAttribute("shippingMethods", availableShippingMethod);
+	    model.addAttribute("shippingAddress", shippingAddress);
+	    model.addAttribute("subtotal", totals.get("subtotal"));
+	    model.addAttribute("shippingCost", totals.get("shipping"));
+	    model.addAttribute("total", totals.get("total"));
+	    model.addAttribute("selectedShippingMethodId", basket.getShippingMethodId());
+	    
+	    return "checkout-shipping";
+		
+	}
+	
+	@PostMapping("/shipping")
+	public String setShippingMethod(@RequestParam Long id,
+									Authentication auth,
+									HttpSession session,
+									RedirectAttributes redirectAttributes) {
+		
+		if (auth == null || !auth.isAuthenticated())
+			return "redirect:/login";
+		
+		User user = userService.findByEmail(auth.getName()).orElseThrow(()-> new RuntimeException("user not found"));
+		
+		Basket basket = basketService.getOrCreateBasket(user.getId(), session.getId());
+		
+		ShippingMethod shippingMethod = shippingMethodService.getShippingMethodById(id)
+										.orElseThrow(() -> new RuntimeException());
+		
+		Address address = addressService.getAddressById(basket.getShippingAddressId())
+							.orElseThrow(() -> new RuntimeException());
+		
+		if (!shippingMethod.isAvailableForCountry(address.getCountry())) {
+			redirectAttributes.addFlashAttribute("error", "Cette méthode de livraison n'est pas disponible pour votre pays");
+	        return "redirect:/checkout/shipping";
+	    }
+		basketService.setShippingMethod(basket.getId(), id);
+
+	    redirectAttributes.addFlashAttribute("success", "Méthode de livraison sélectionnée");
+	    return "redirect:/checkout/payment";
+		
+	}
 
 }

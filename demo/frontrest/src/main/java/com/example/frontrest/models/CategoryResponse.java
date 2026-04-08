@@ -11,16 +11,13 @@ public class CategoryResponse {
 
     private CategoryDto category;
     private List<CategoryDto> subCategories;
-    private List<ProductDto> products;
     private List<CategoryDto> breadcrumb;
 
     public CategoryResponse(CategoryDto category,
                             List<CategoryDto> subCategories,
-                            List<ProductDto> products,
                             List<CategoryDto> breadcrumb) {
         this.category = category;
         this.subCategories = subCategories;
-        this.products = products;
         this.breadcrumb = breadcrumb;
     }
 
@@ -30,10 +27,6 @@ public class CategoryResponse {
 
     public List<CategoryDto> getSubCategories() {
         return subCategories;
-    }
-
-    public List<ProductDto> getProducts() {
-        return products;
     }
 
     public List<CategoryDto> getBreadcrumb() {

@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 	    "com.example.user",
 	    "com.example.address",
 	    "com.example.shopping",
+	    "com.example.shippingmethod",
 	    "com.example.events" 
 	})
 	@EntityScan({
@@ -20,6 +21,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 	    "com.example.user.model",
 	    "com.example.address.model",
 	    "com.example.shopping.model",
+	    "com.example.shippingmethod.model",
 	    "com.example.events.model"
 	})
 	@EnableJpaRepositories({
@@ -28,6 +30,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 	    "com.example.user.repository",
 	    "com.example.address.repository",
 	    "com.example.shopping.repository",
+	    "com.example.shippingmethod.repository",
 	    "com.example.events.repository"
 	})
 	public class FrontApplicationRest {
