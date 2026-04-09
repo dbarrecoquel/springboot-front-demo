@@ -3,13 +3,19 @@ package com.example.frontrest.controller;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.address.model.Address;
+import com.example.address.service.AddressService;
 import com.example.frontrest.models.BasketResponse;
+import com.example.shippingmethod.dto.ShippingMethodDto;
+import com.example.shippingmethod.mapper.ShippingMethodMapper;
+import com.example.shippingmethod.service.ShippingMethodService;
 import com.example.shopping.model.Basket;
 import com.example.shopping.model.ProductLineItem;
 import com.example.shopping.service.BasketService;
@@ -23,12 +29,22 @@ public class CheckoutController {
 	private final BasketService basketService;
 	private final UserService userService;
 	private final ProductLineItemService lineItemService;
+	private final ShippingMethodService shippingMethodService;
+	private final AddressService addressService;
+	private final ShippingMethodMapper shippMapper;
 	
-	public CheckoutController(BasketService basketService,UserService userService, ProductLineItemService lineItemService) {
+	public CheckoutController(BasketService basketService,UserService userService, 
+			ProductLineItemService lineItemService,
+			ShippingMethodService shippingMethodService,
+			AddressService addressService,
+			ShippingMethodMapper mapper) {
 		
 		this.basketService = basketService;
 		this.userService = userService;
 		this.lineItemService = lineItemService;
+		this.shippingMethodService = shippingMethodService;
+		this.addressService = addressService;
+		this.shippMapper = mapper;
 		
 	}
 	
@@ -59,6 +75,37 @@ public class CheckoutController {
 		
 		
 		return ResponseEntity.ok(response);
+	}
+	@GetMapping("/shipping-methods")
+	public ResponseEntity<List<ShippingMethodDto>> viewCheckoutShippingMethods(Authentication auth) {
+		
+		if (auth == null || !auth.isAuthenticated())
+			return ResponseEntity.status(403).build();
+		
+		User user = userService.findByEmail(auth.getName()).orElseThrow(() -> new RuntimeException("User not found"));
+		
+		Basket basket = basketService.getOrCreateBasket(user.getId(),null);
+		
+		List<ProductLineItem> plis = lineItemService.getLineItemsByBasketId(basket.getId());
+		
+		Double total = lineItemService.calculateBasketTotal(basket.getId());
+		
+		if (plis.isEmpty())
+			return ResponseEntity.badRequest().build();
+		
+		if (basket.getBillingAddressId() == null && basket.getShippingAddressId() == null)
+			return ResponseEntity.badRequest().build();
+		
+		Address address = addressService.getAddressById(basket.getShippingAddressId()).orElseThrow(() -> new RuntimeException("Cant get address"));
+		
+		List<ShippingMethodDto> ship = shippingMethodService.getAvailaShippingMethods(address.getCountry())
+				.stream()
+				.map(shippMapper::toDto)
+				.collect(Collectors.toList());
+		
+		
+		
+		return ResponseEntity.ok(ship);
 	}
 	
 }
