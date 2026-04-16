@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.address.model.Address;
 import com.example.address.service.AddressService;
 import com.example.frontrest.models.BasketResponse;
+import com.example.frontrest.models.CheckoutAddressesRequest;
 import com.example.shippingmethod.dto.ShippingMethodDto;
 import com.example.shippingmethod.mapper.ShippingMethodMapper;
 import com.example.shippingmethod.service.ShippingMethodService;
@@ -80,6 +81,33 @@ public class CheckoutController {
 		
 		
 		return ResponseEntity.ok(response);
+	}
+	@PostMapping("/addresses")
+	public ResponseEntity<Void> setCheckoutAddresses(@Valid @RequestBody CheckoutAddressesRequest request, Authentication auth) {
+		
+		if (auth == null || !auth.isAuthenticated())
+			return ResponseEntity.status(403).build();
+		
+		User user = userService.findByEmail(auth.getName()).orElseThrow(() -> new RuntimeException("User not found"));
+		
+		Basket basket = basketService.getOrCreateBasket(user.getId(),null);
+		
+		List<ProductLineItem> plis = lineItemService.getLineItemsByBasketId(basket.getId());
+		
+		Double total = lineItemService.calculateBasketTotal(basket.getId());
+		
+		if (plis.isEmpty())
+			return ResponseEntity.badRequest().build();
+		
+		Address addressShipping = addressService.getAddressById(request.getShippingAddressId()).orElseThrow(() -> new RuntimeException("Cant get address"));
+		Address adddressInvoice = addressService.getAddressById(request.getBillingAddressId()).orElseThrow(() -> new RuntimeException("Cant get address"));
+		
+		basket.setBillingAddressId(adddressInvoice.getId());
+		basket.setShippingAddressId(addressShipping.getId());
+		
+		basketService.save(basket);
+		
+		return ResponseEntity.ok().build();
 	}
 	@GetMapping("/shipping-methods")
 	public ResponseEntity<List<ShippingMethodDto>> viewCheckoutShippingMethods(Authentication auth) {
