@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,6 +24,8 @@ import com.example.shopping.service.BasketService;
 import com.example.shopping.service.ProductLineItemService;
 import com.example.user.model.User;
 import com.example.user.service.UserService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/checkout")
@@ -49,7 +53,7 @@ public class CheckoutController {
 	}
 	
 	@GetMapping("/addresses")
-	public ResponseEntity<BasketResponse> viewCheckoutAddresses(Authentication auth) {
+	public ResponseEntity<BasketResponse> viewCheckoutAddresses( Authentication auth) {
 		
 		if (auth == null || !auth.isAuthenticated())
 			return ResponseEntity.status(403).build();
@@ -72,6 +76,7 @@ public class CheckoutController {
 		response.setItems(plis);
 		response.setBillingAddressId(basket.getBillingAddressId());
 		response.setShippingAddressId(basket.getShippingAddressId());
+		response.setTotal(total);
 		
 		
 		return ResponseEntity.ok(response);
@@ -88,7 +93,6 @@ public class CheckoutController {
 		
 		List<ProductLineItem> plis = lineItemService.getLineItemsByBasketId(basket.getId());
 		
-		Double total = lineItemService.calculateBasketTotal(basket.getId());
 		
 		if (plis.isEmpty())
 			return ResponseEntity.badRequest().build();
@@ -103,9 +107,25 @@ public class CheckoutController {
 				.map(shippMapper::toDto)
 				.collect(Collectors.toList());
 		
-		
-		
 		return ResponseEntity.ok(ship);
+	}
+	
+	@PostMapping("/shipping-methods")
+	public ResponseEntity<Void> setCheckoutShippingMethod(@Valid @RequestBody Long shippingMethodId,Authentication auth) {
+		if (auth == null || !auth.isAuthenticated())
+			return ResponseEntity.status(403).build();
+		User user = userService.findByEmail(auth.getName()).orElseThrow(() -> new RuntimeException("User not found"));
+		
+		Basket basket = basketService.getOrCreateBasket(user.getId(),null);
+		
+		List<ProductLineItem> plis = lineItemService.getLineItemsByBasketId(basket.getId());
+		
+		
+		if (plis.isEmpty())
+			return ResponseEntity.badRequest().build();
+		basket.setShippingMethodId(shippingMethodId);
+		basketService.save(basket);
+		return ResponseEntity.ok().build();
 	}
 	
 }
