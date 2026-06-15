@@ -7,10 +7,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ShippingMethodRepository extends JpaRepository<ShippingMethod, Long> {
     
+	Optional<ShippingMethod> findByName(String name);
+	
     List<ShippingMethod> findByEnabledTrue();
     
     List<ShippingMethod> findByDestinationCountry(String destinationCountry);
