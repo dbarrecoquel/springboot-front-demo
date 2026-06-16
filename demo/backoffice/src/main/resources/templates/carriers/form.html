@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${isEdit ? 'Modifier le transporteur' : 'Créer un transporteur'} + ' - Backoffice'"></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .form-section {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .form-label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container mt-5 mb-5">
+        
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 th:text="${isEdit ? 'Modifier le transporteur' : 'Créer un nouveau transporteur'}">
+                    Transporteur
+                </h1>
+            </div>
+        </div>
+        
+        <!-- Form -->
+        <div class="row">
+            <div class="col-md-8">
+                
+                <form th:action="${isEdit ? '/carriers/' + carrier.id : '/carriers'}" 
+                      th:object="${carrier}" method="post">
+                    
+                    <!-- Informations générales -->
+                    <div class="form-section">
+                        <h5 class="mb-4">
+                            <i class="bi bi-info-circle"></i> Informations générales
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">
+                                    Nom du transporteur *
+                                </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="name" 
+                                       th:field="*{name}" 
+                                       placeholder="Ex: La Poste, DPD, UPS"
+                                       required>
+                                <small class="form-text text-muted">Nom visible pour les clients</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="code" class="form-label">
+                                    Code *
+                                </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="code" 
+                                       th:field="*{code}" 
+                                       placeholder="Ex: LA_POSTE, DPD, UPS"
+                                       required
+                                       th:attr="readonly=${isEdit}">
+                                <small class="form-text text-muted">Code unique (non modifiable après création)</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">
+                                Description
+                            </label>
+                            <textarea class="form-control" 
+                                      id="description" 
+                                      th:field="*{description}" 
+                                      rows="4"
+                                      placeholder="Décrivez ce transporteur et ses services"></textarea>
+                            <small class="form-text text-muted">Visible pour les clients lors de la sélection</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Statut -->
+                    <div class="form-section">
+                        <h5 class="mb-4">
+                            <i class="bi bi-toggle-on"></i> Statut
+                        </h5>
+                        
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="enabled" 
+                                   th:field="*{enabled}"
+                                   value="true">
+                            <label class="form-check-label" for="enabled">
+                                <strong>Transporteur actif</strong>
+                                <br>
+                                <small class="text-muted">Les clients pourront sélectionner ce transporteur</small>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i> 
+                            <span th:text="${isEdit ? 'Mettre à jour' : 'Créer'}">Créer</span>
+                        </button>
+                        
+                        <a href="/backoffice/carriers" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                    </div>
+                    
+                </form>
+                
+            </div>
+            
+            <!-- Sidebar Help -->
+            <div class="col-md-4">
+                <div class="bg-info bg-opacity-10 border border-info rounded p-4">
+                    <h6 class="text-info mb-3">
+                        <i class="bi bi-question-circle"></i> Aide
+                    </h6>
+                    
+                    <div class="mb-3">
+                        <strong class="small">Code du transporteur</strong>
+                        <p class="small text-muted mb-0">
+                            Utilisez un code unique sans espaces ni caractères spéciaux (ex: LA_POSTE_COLISSIMO)
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong class="small">Description</strong>
+                        <p class="small text-muted mb-0">
+                            Soyez précis dans la description des services (délais, zones de livraison, tarifs...)
+                        </p>
+                    </div>
+                    
+                    <div class="mb-0">
+                        <strong class="small">Statut</strong>
+                        <p class="small text-muted mb-0">
+                            Un transporteur inactif ne sera pas proposé aux clients
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Related sections -->
+                <div class="mt-4">
+                    <h6 class="mb-3">Sections liées</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2">
+                            <a href="/carrier-services" class="text-decoration-none">
+                                <i class="bi bi-truck"></i> Services de transport
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="/warehouses" class="text-decoration-none">
+                                <i class="bi bi-building"></i> Entrepôts
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/holiday-dates" class="text-decoration-none">
+                                <i class="bi bi-calendar-event"></i> Jours fériés
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

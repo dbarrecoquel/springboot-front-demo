@@ -64,7 +64,7 @@ public class WarehouseController {
         try {
             warehouse.setId(id);
             warehouse.setUpdatedAt(LocalDateTime.now());
-            warehouseService.saveWarehouse(warehouse);
+            warehouseService.updateWarehouse(id,warehouse);
             redirectAttributes.addFlashAttribute("success", "Entrepôt mis à jour avec succès");
             return "redirect:/warehouses";
         } catch (Exception e) {

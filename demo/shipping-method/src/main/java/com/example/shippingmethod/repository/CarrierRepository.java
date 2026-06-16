@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import com.example.shippingmethod.model.Carrier;
 
 @Repository
-public interface CarrierRepository extends JpaRepository<Carrier, UUID>{
+public interface CarrierRepository extends JpaRepository<Carrier, Long>{
 	
 	List<Carrier> findByEnabledTrue();
     Optional<Carrier> findByCode(String code);
