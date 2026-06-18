@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Jour férié - Backoffice</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="container mt-5">
+        
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                
+                <div class="mb-4">
+                    <h1 th:text="${holiday.id != null ? 'Modifier le jour férié' : 'Nouveau jour férié'}">
+                        Jour férié
+                    </h1>
+                </div>
+                
+                <form th:action="${holiday.id != null ? '/holiday-dates/' + holiday.id : '/holiday-dates'}" 
+                      th:object="${holiday}" method="post" class="card p-4">
+                    
+                    <div class="mb-3">
+                        <label for="warehouse" class="form-label">Entrepôt *</label>
+                        <select class="form-select"
+					        id="warehouseId"
+					        th:field="*{warehouseId}"
+					        required>
+					    <option value="">-- Choisir un entrepôt --</option>
+					    <option th:each="warehouse : ${warehouses}"
+					            th:value="${warehouse.id}"
+					            th:text="${warehouse.name}">
+					    </option>
+					</select>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="holidayDate" class="form-label">Date *</label>
+                            <input type="date" class="form-control" id="holidayDate" th:field="*{holidayDate}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Nom du jour *</label>
+                            <input type="text" class="form-control" id="name" th:field="*{name}" placeholder="Ex: Noël" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="country" class="form-label">Code pays *</label>
+                        <input type="text" class="form-control" id="country" th:field="*{country}" placeholder="Ex: FR, DE, IT" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="isRecurring" th:field="*{recurring}">
+                            <label class="form-check-label" for="isRecurring">Jour férié récurrent chaque année</label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Enregistrer
+                        </button>
+                        <a href="/holiday-dates" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                    </div>
+                    
+                </form>
+                
+            </div>
+        </div>
+        
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,10 +1,14 @@
 package com.example.shippingmethod.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.time.LocalDateTime;
 
-@Getter
-@Setter
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CarrierDto {
 	  
 	    private Long id;
@@ -16,4 +20,8 @@ public class CarrierDto {
 	    private String description;
 	    
 	    private Boolean enabled = true;
+
+	    private LocalDateTime createdAt;
+	    
+	    private LocalDateTime updatedAt;
 }

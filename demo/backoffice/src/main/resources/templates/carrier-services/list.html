@@ -6,16 +6,44 @@
     <title>Services de transport - Backoffice</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .service-row:hover {
+            background-color: #f8f9fa;
+        }
+        .delivery-fast {
+            color: #48bb78;
+            font-weight: 600;
+        }
+        .delivery-standard {
+            color: #ed8936;
+            font-weight: 600;
+        }
+        .badge-fast {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .badge-standard {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+    </style>
 </head>
-<body>
-    <div class="container mt-5">
+<body class="bg-light">
+   
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container mt-5 mb-5">
         
+        <!-- Header -->
         <div class="row mb-4">
             <div class="col-md-8">
-                <h1><i class="bi bi-truck"></i> Services de transport</h1>
+                <h1 class="mb-0">
+                    <i class="bi bi-truck"></i> Services de transport
+                </h1>
+                <p class="text-muted">Configurez les services de livraison pour vos transporteurs</p>
             </div>
             <div class="col-md-4 text-end">
-                <a href="/backoffice/carrier-services/create" class="btn btn-primary">
+                <a href="/carrier-services/create" class="btn btn-primary btn-lg">
                     <i class="bi bi-plus-circle"></i> Nouveau service
                 </a>
             </div>
@@ -23,60 +51,121 @@
         
         <!-- Alerts -->
         <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
-            <i class="bi bi-check-circle"></i> [[${success}]]
+            <i class="bi bi-check-circle-fill"></i> [[${success}]]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
-            <i class="bi bi-exclamation-triangle"></i> [[${error}]]
+            <i class="bi bi-exclamation-triangle-fill"></i> [[${error}]]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         
+        <!-- Empty State -->
+        <div th:if="${services.isEmpty()}" class="text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: #cbd5e0;"></i>
+            <h3 class="mt-3 text-muted">Aucun service</h3>
+            <p class="text-muted">Commencez par créer votre premier service de transport</p>
+            <a href="/carrier-services/create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Créer un service
+            </a>
+        </div>
+        
         <!-- Table -->
-        <table class="table table-hover">
-            <thead class="table-light">
-                <tr>
-                    <th>Transporteur</th>
-                    <th>Service</th>
-                    <th>Jours de livraison</th>
-                    <th>Jours de traitement</th>
-                    <th>Cutoff</th>
-                    <th>Coût</th>
-                    <th>Gratuit à partir de</th>
-                    <th>Statut</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="service : ${services}">
-                    <td><strong th:text="${service.carrier.name}"></strong></td>
-                    <td th:text="${service.name}"></td>
-                    <td th:text="${service.deliveryDays} + ' jour(s)'"></td>
-                    <td th:text="${service.processingDays} + ' jour(s)'"></td>
-                    <td th:text="${service.cutoffTime}"></td>
-                    <td>
-                        <span th:if="${service.cost > 0}" th:text="'€' + ${service.cost}"></span>
-                        <span th:unless="${service.cost > 0}" class="badge bg-success">GRATUIT</span>
-                    </td>
-                    <td th:text="'€' + ${service.freeShippingMinAmount}"></td>
-                    <td>
-                        <span th:if="${service.enabled}" class="badge bg-success">Actif</span>
-                        <span th:unless="${service.enabled}" class="badge bg-danger">Inactif</span>
-                    </td>
-                    <td>
-                        <a th:href="'/backoffice/carrier-services/' + ${service.id} + '/edit'" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <a th:href="'/backoffice/carrier-services/' + ${service.id} + '/delete'" class="btn btn-sm btn-outline-danger" 
-                           onclick="return confirm('Êtes-vous sûr ?')">
-                            <i class="bi bi-trash"></i>
-                        </a>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div th:unless="${services.isEmpty()}" class="card shadow-sm">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Service</th>
+                        <th>Transporteur</th>
+                        <th>Délai</th>
+                        <th>Traitement</th>
+                        <th>Heure limite</th>
+                        <th>Coût</th>
+                        <th>Gratuit à partir de</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="service-row" th:each="service : ${services}">
+                        <td>
+                            <strong th:text="${service.serviceName}"></strong>
+                            <br>
+                            <small class="text-muted" th:text="${service.serviceCode}"></small>
+                        </td>
+                        <td>
+                            <strong th:text="${service.carrierName}"></strong>
+                            <br>
+                            <small class="text-muted" th:text="${service.carrierCode}"></small>
+                        </td>
+                        <td>
+                            <span th:if="${service.totalDays <= 2}" class="delivery-fast">
+                                <i class="bi bi-lightning-charge"></i>
+                                <span th:text="${service.deliveryDays} + ' jour(s)'"></span>
+                            </span>
+                            <span th:unless="${service.totalDays <= 2}" class="delivery-standard">
+                                <i class="bi bi-truck"></i>
+                                <span th:text="${service.deliveryDays} + ' jour(s)'"></span>
+                            </span>
+                        </td>
+                        <td th:text="${service.processingDays} + ' jour(s)'"></td>
+                        <td th:text="${service.cutoffTime}"></td>
+                        <td>
+                            <span th:if="${service.cost > 0}" th:text="'€' + ${#numbers.formatDecimal(service.cost, 1, 2)}"></span>
+                            <span th:unless="${service.cost > 0}" class="badge bg-success">GRATUIT</span>
+                        </td>
+                        <td th:text="'€' + ${#numbers.formatDecimal(service.freeShippingMinAmount, 1, 2)}"></td>
+                        <td>
+                            <span th:if="${service.enabled}" class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Actif
+                            </span>
+                            <span th:unless="${service.enabled}" class="badge bg-danger">
+                                <i class="bi bi-x-circle"></i> Inactif
+                            </span>
+                        </td>
+                        <td>
+                            <a th:href="'/carrier-services/' + ${service.id} + '/edit'" 
+                               class="btn btn-sm btn-outline-primary"
+                               title="Modifier">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger"
+                                     th:onclick="'confirmDelete(' + ${service.id} + ');'"
+                                    title="Supprimer">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         
     </div>
-    
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-bottom">
+        <div class="container">
+            <a href="/" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+            <a href="/carriers" class="btn btn-outline-primary me-2">
+                <i class="bi bi-truck"></i> Transporteurs
+            </a>
+            <a href="/warehouses" class="btn btn-outline-info me-2">
+                <i class="bi bi-building"></i> Entrepôts
+            </a>
+            <a href="/holiday-dates" class="btn btn-outline-warning">
+                <i class="bi bi-calendar-event"></i> Jours fériés
+            </a>
+        </div>
+    </nav>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function confirmDelete(serviceId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce service ?\n\nCette action est irréversible.')) {
+                window.location.href = '/carrier-services/' + serviceId + '/delete';
+            }
+        }
+    </script>
 </body>
 </html>

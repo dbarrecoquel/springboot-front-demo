@@ -32,7 +32,7 @@ public class CarrierController {
 	
 	@GetMapping
 	public String getAllCarrier(Model model){
-		List<CarrierDto> carriers = carrierService.getAllCarrier();
+		List<CarrierDto> carriers = carrierService.getAllCarriersDto();
 		model.addAttribute("carriers", carriers);
 		return "carriers/list";
 	}
@@ -43,10 +43,10 @@ public class CarrierController {
 		return "carriers/form";
 	}
 	@PostMapping
-	public String save(@ModelAttribute Carrier carrier, RedirectAttributes redirectAttributes) {
+	public String save(@ModelAttribute CarrierDto carrier, RedirectAttributes redirectAttributes) {
 		 try {
 	            carrier.setUpdatedAt(LocalDateTime.now());
-	            carrierService.saveCarrier(carrier);
+	            carrierService.createCarrier(carrier);
 	            redirectAttributes.addFlashAttribute("success", "Transporteur créé avec succès");
 	            return "redirect:/carriers";
 	        } catch (Exception e) {
@@ -57,13 +57,13 @@ public class CarrierController {
 	}
 	 @GetMapping("/{id}/edit")
     public String edit(@PathVariable Long id, Model model) {
-        CarrierDto carrier = carrierService.getCarrierById(id);
+        CarrierDto carrier = carrierService.getCarrierDtoById(id).orElseThrow(() -> new RuntimeException("carrier not found"));
         model.addAttribute("isEdit", true);
         model.addAttribute("carrier", carrier);
         return "carriers/form";
     }
     @PostMapping("/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute Carrier carrier, RedirectAttributes redirectAttributes) {
+    public String update(@PathVariable Long id, @ModelAttribute CarrierDto carrier, RedirectAttributes redirectAttributes) {
         try {
             carrier.setId(id);
             carrier.setUpdatedAt(LocalDateTime.now());
@@ -79,7 +79,7 @@ public class CarrierController {
     @GetMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            carrierService.deleteCarrierById(id);
+            carrierService.deleteCarrier(id);
             redirectAttributes.addFlashAttribute("success", "Transporteur supprimé avec succès");
         } catch (Exception e) {
             log.error("Error deleting warehouse", e);
@@ -89,7 +89,7 @@ public class CarrierController {
     }
     @PostMapping("/{id}/toggle")
     @ResponseBody
-    public Carrier toggleStatus(@PathVariable Long id) {
+    public CarrierDto toggleStatus(@PathVariable Long id) {
         return carrierService.toggleCarrierStatus(id);
     }
 }

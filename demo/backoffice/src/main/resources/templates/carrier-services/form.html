@@ -3,87 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Service de transport - Backoffice</title>
+    <title th:text="(${isEdit} ? 'Modifier le service' : 'Créer un service') + ' - Backoffice'"></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .form-section {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .form-label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        .info-box {
+            background: #edf2f7;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
-<body>
-    <div class="container mt-5">
+<body class="bg-light">
         
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="container mt-5 mb-5">
+        
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 th:if="!${isEdit}">
+                    <i class="bi bi-plus-circle"></i> Créer un nouveau service
+                </h1>
+                <h1 th:if="${isEdit}">
+                    <i class="bi bi-pencil"></i> Modifier le service
+                </h1>
+                <p class="text-muted" th:if="${isEdit}">
+                    Service: <strong th:text="${service.name}"></strong>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Form -->
         <div class="row">
-            <div class="col-md-8 offset-md-2">
+            <div class="col-md-8">
                 
-                <div class="mb-4">
-                    <h1 th:text="${service.id ? 'Modifier le service' : 'Nouveau service'}">
-                        Service
-                    </h1>
-                </div>
-                
-                <form th:action="${service.id ? '/backoffice/carrier-services/' + service.id : '/backoffice/carrier-services'}" 
-                      th:object="${service}" method="post" class="card p-4">
+                <form th:action="${isEdit} ? '/carrier-services/' + ${service.id} : '/carrier-services'" 
+                      th:object="${service}" method="post" novalidate>
                     
-                    <div class="mb-3">
-                        <label for="carrier" class="form-label">Transporteur *</label>
-                        <select class="form-select" id="carrier" th:field="*{carrier}" required>
-                            <option value="">-- Choisir un transporteur --</option>
-                            <option th:each="carrier : ${carriers}" th:value="${carrier.id}" th:text="${carrier.name}"></option>
-                        </select>
+                    <!-- Informations du service -->
+                    <div class="form-section">
+                        <h5 class="mb-4">
+                            <i class="bi bi-box-seam"></i> Informations du service
+                        </h5>
+                        
+                        <div class="mb-3">
+                            <label for="carrierId" class="form-label">
+                                Transporteur *
+                            </label>
+                            <select class="form-select form-select-lg" 
+                                    id="carrierId" 
+                                    th:field="*{carrierId}"
+                                    required>
+                                <option value="">-- Choisir un transporteur --</option>
+                                <option th:each="carrier : ${carriers}" 
+                                        th:value="${carrier.id}" 
+                                        th:text="${carrier.name}"></option>
+                            </select>
+                            <small class="form-text text-muted">Sélectionnez le transporteur pour ce service</small>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">
+                                    Nom du service *
+                                </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="name" 
+                                       th:field="*{name}" 
+                                       placeholder="Ex: Colissimo Domicile"
+                                       required>
+                                <small class="form-text text-muted">Nom visible pour les clients</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="code" class="form-label">
+                                    Code *
+                                </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="code" 
+                                       th:field="*{code}" 
+                                       placeholder="Ex: COLISSIMO_DOMICILE"
+                                       required>
+                                <small class="form-text text-muted">Code unique sans espaces</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">
+                                Description
+                            </label>
+                            <textarea class="form-control" 
+                                      id="description" 
+                                      th:field="*{description}" 
+                                      rows="4"
+                                      placeholder="Décrivez ce service de livraison"></textarea>
+                            <small class="form-text text-muted">Visible pour les clients lors de la sélection</small>
+                        </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="name" class="form-label">Nom du service *</label>
-                            <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                    <!-- Délais de livraison -->
+                    <div class="form-section">
+                        <h5 class="mb-4">
+                            <i class="bi bi-calendar"></i> Délais de livraison
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="processingDays" class="form-label">
+                                    Jours de traitement *
+                                </label>
+                                <input type="number" 
+                                       class="form-control form-control-lg" 
+                                       id="processingDays" 
+                                       th:field="*{processingDays}" 
+                                       min="0" 
+                                       max="10"
+                                       required>
+                                <small class="form-text text-muted">Avant enlèvement par le transporteur</small>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="deliveryDays" class="form-label">
+                                    Jours de livraison *
+                                </label>
+                                <input type="number" 
+                                       class="form-control form-control-lg" 
+                                       id="deliveryDays" 
+                                       th:field="*{deliveryDays}" 
+                                       min="1" 
+                                       max="30"
+                                       required>
+                                <small class="form-text text-muted">Délai de transport</small>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="cutoffTime" class="form-label">
+                                    Heure limite *
+                                </label>
+                                <input type="time" 
+                                       class="form-control form-control-lg" 
+                                       id="cutoffTime" 
+                                       th:field="*{cutoffTime}" 
+                                       required>
+                                <small class="form-text text-muted">Après cette heure = jour suivant</small>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="code" class="form-label">Code *</label>
-                            <input type="text" class="form-control" id="code" th:field="*{code}" required>
+                        
+                        <div class="info-box" th:if="${service.deliveryDays != null && service.processingDays != null}">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Délai total :</strong> 
+                            <span th:text="${service.processingDays + service.deliveryDays} + ' jour(s)'"></span>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
+                    <!-- Tarification -->
+                    <div class="form-section">
+                        <h5 class="mb-4">
+                            <i class="bi bi-currency-euro"></i> Tarification
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="cost" class="form-label">
+                                    Coût de livraison (€) *
+                                </label>
+                                <input type="number" 
+                                       class="form-control form-control-lg" 
+                                       id="cost" 
+                                       th:field="*{cost}" 
+                                       step="0.01" 
+                                       min="0" 
+                                       placeholder="0.00"
+                                       required>
+                                <small class="form-text text-muted">Montant facturé au client</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="freeShippingMinAmount" class="form-label">
+                                    Livraison gratuite à partir de (€) *
+                                </label>
+                                <input type="number" 
+                                       class="form-control form-control-lg" 
+                                       id="freeShippingMinAmount" 
+                                       th:field="*{freeShippingMinAmount}" 
+                                       step="0.01" 
+                                       min="0" 
+                                       placeholder="0.00"
+                                       required>
+                                <small class="form-text text-muted">Montant minimum du panier</small>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="deliveryDays" class="form-label">Jours de livraison *</label>
-                            <input type="number" class="form-control" id="deliveryDays" th:field="*{deliveryDays}" min="1" required>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="processingDays" class="form-label">Jours de traitement *</label>
-                            <input type="number" class="form-control" id="processingDays" th:field="*{processingDays}" min="1" required>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="cutoffTime" class="form-label">Heure limite *</label>
-                            <input type="time" class="form-control" id="cutoffTime" th:field="*{cutoffTime}" required>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="cost" class="form-label">Coût (€) *</label>
-                            <input type="number" class="form-control" id="cost" th:field="*{cost}" step="0.01" min="0" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="freeShippingMinAmount" class="form-label">Livraison gratuite à partir de (€) *</label>
-                            <input type="number" class="form-control" id="freeShippingMinAmount" th:field="*{freeShippingMinAmount}" step="0.01" min="0" required>
+                    <!-- Statut -->
+                    <div class="form-section">
+                        <h5 class="mb-4">
+                            <i class="bi bi-toggle-on"></i> Statut
+                        </h5>
+                        
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="enabled" 
+                                   th:checked="${service.enabled == true}"
+                                   name="enabled"
+                                   value="true">
+                            <label class="form-check-label" for="enabled">
+                                <strong>Service actif</strong>
+                                <br>
+                                <small class="text-muted">Les clients pourront sélectionner ce service</small>
+                            </label>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="enabled" th:field="*{enabled}">
-                            <label class="form-check-label" for="enabled">Actif</label>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle"></i> Enregistrer
+                    <!-- Actions -->
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i> 
+                            <span th:text="${isEdit} ? 'Mettre à jour' : 'Créer'">Créer</span>
                         </button>
-                        <a href="/backoffice/carrier-services" class="btn btn-outline-secondary">
+                        
+                        <a href="/backoffice/carrier-services" class="btn btn-outline-secondary btn-lg">
                             <i class="bi bi-x-circle"></i> Annuler
                         </a>
                     </div>
@@ -91,10 +248,51 @@
                 </form>
                 
             </div>
+            
+            <!-- Sidebar Help -->
+            <div class="col-md-4">
+                <div class="bg-info bg-opacity-10 border border-info rounded p-4" style="position: sticky; top: 20px;">
+                    <h6 class="text-info mb-3">
+                        <i class="bi bi-question-circle"></i> Aide
+                    </h6>
+                    
+                    <div class="mb-3">
+                        <strong class="small">Jours de traitement</strong>
+                        <p class="small text-muted mb-0">
+                            Délai avant que le colis soit enlevé par le transporteur (ex: 1 jour)
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong class="small">Jours de livraison</strong>
+                        <p class="small text-muted mb-0">
+                            Délai de transport du colis (ex: 2 jours)
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong class="small">Heure limite</strong>
+                        <p class="small text-muted mb-0">
+                            Les commandes après cette heure sont traitées le jour suivant
+                        </p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <strong class="small">Exemples</strong>
+                        <ul class="small text-muted mb-0">
+                            <li><strong>Express:</strong> 0j traitement + 1j livraison</li>
+                            <li><strong>Standard:</strong> 1j traitement + 2-3j livraison</li>
+                            <li><strong>Économique:</strong> 2j traitement + 5j livraison</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
         
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

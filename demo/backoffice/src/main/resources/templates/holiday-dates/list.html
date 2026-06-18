@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Jours fériés - Backoffice</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="container mt-5">
+        
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1><i class="bi bi-calendar-event"></i> Jours fériés</h1>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="/holiday-dates/create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Nouveau jour
+                </a>
+            </div>
+        </div>
+        
+        <!-- Alerts -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> [[${success}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> [[${error}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        
+        <!-- Table -->
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Entrepôt</th>
+                    <th>Date</th>
+                    <th>Nom du jour</th>
+                    <th>Pays</th>
+                    <th>Récurrent</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="holiday : ${holidays}">
+                    <td><strong th:text="${holiday.warehouse.name}"></strong></td>
+                    <td th:text="${#temporals.format(holiday.holidayDate, 'dd/MM/yyyy')}"></td>
+                    <td th:text="${holiday.name}"></td>
+                    <td th:text="${holiday.country}"></td>
+                    <td>
+                        <span th:if="${holiday.recurring}" class="badge bg-info">Oui</span>
+                        <span th:unless="${holiday.recurring}" class="badge bg-secondary">Non</span>
+                    </td>
+                    <td th:text="${holiday.description}"></td>
+                    <td>
+                        <a th:href="'/holiday-dates/' + ${holiday.id} + '/edit'" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a th:href="/holiday-dates/' + ${holiday.id} + '/delete'" class="btn btn-sm btn-outline-danger" 
+                           onclick="return confirm('Êtes-vous sûr ?')">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
