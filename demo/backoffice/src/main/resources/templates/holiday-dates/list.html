@@ -48,7 +48,7 @@
             </thead>
             <tbody>
                 <tr th:each="holiday : ${holidays}">
-                    <td><strong th:text="${holiday.warehouse.name}"></strong></td>
+                    <td><strong th:text="${holiday.warehouseName}"></strong></td>
                     <td th:text="${#temporals.format(holiday.holidayDate, 'dd/MM/yyyy')}"></td>
                     <td th:text="${holiday.name}"></td>
                     <td th:text="${holiday.country}"></td>
@@ -61,17 +61,34 @@
                         <a th:href="'/holiday-dates/' + ${holiday.id} + '/edit'" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <a th:href="/holiday-dates/' + ${holiday.id} + '/delete'" class="btn btn-sm btn-outline-danger" 
-                           onclick="return confirm('Êtes-vous sûr ?')">
-                            <i class="bi bi-trash"></i>
-                        </a>
+                        <a th:href="'/holiday-dates/' + ${holiday.id} + '/delete'"
+						   class="btn btn-sm btn-outline-danger"
+						   onclick="return confirm('Êtes-vous sûr ?')">
+						    <i class="bi bi-trash"></i>
+						</a>
                     </td>
                 </tr>
             </tbody>
         </table>
         
     </div>
-    
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-bottom">
+        <div class="container">
+            <a href="/" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+            <a href="/carriers" class="btn btn-outline-primary me-2">
+                <i class="bi bi-truck"></i> Transporteurs
+            </a>
+            
+            <a href="/carrier-services" class="btn btn-outline-primary me-2">
+                <i class="bi bi-truck"></i> Services de transport
+            </a>
+            <a href="/warehouses" class="btn btn-outline-info me-2">
+                <i class="bi bi-building"></i> Entrepôts
+            </a>
+        </div>
+    </nav>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

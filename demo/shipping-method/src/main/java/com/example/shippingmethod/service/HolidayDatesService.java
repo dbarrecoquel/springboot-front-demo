@@ -73,7 +73,13 @@ public class HolidayDatesService {
 		public boolean existsByWarehouseIdAndHolidayDate(Long warehouseId, LocalDate hollidayDate) {
 			return holidayRepository.existsByWarehouseIdAndHolidayDate(warehouseId, hollidayDate);
 		}
+		public HolidayDatesDto getHolidayDateById(Long id) {
+			
+			HolidayDate holiday = holidayRepository.findById(id).orElseThrow(()-> new RuntimeException("jour férié non trouvé"));
+			return mapper.toDto(holiday);
 		
+			
+		}
 		@Transactional
 		public HolidayDatesDto createHolidayDate(HolidayDatesDto date) {
 			Warehouse warehouse = warehouseRepository.findById(date.getWarehouseId()).orElseThrow(() -> new RuntimeException("Warehouse not found"));
@@ -118,7 +124,7 @@ public class HolidayDatesService {
 	        
 	        return mapper.toDto(saved);
 		}
-		public void deleteService(Long id) {
+		public void deleteHolidayDate(Long id) {
 	        HolidayDate date = holidayRepository.findById(id)
 	            .orElseThrow(() -> new RuntimeException("Holiday non trouvé avec l'ID: " + id));
 	        

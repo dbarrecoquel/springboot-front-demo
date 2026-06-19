@@ -41,7 +41,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="holidayDate" class="form-label">Date *</label>
-                            <input type="date" class="form-control" id="holidayDate" th:field="*{holidayDate}" required>
+                            <input type="date" class="form-control" id="holidayDate" th:field="*{holidayDate}" th:value="${holiday.holidayDate != null ? #temporals.format(holiday.holidayDate, 'yyyy-MM-dd') : ''}" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="name" class="form-label">Nom du jour *</label>

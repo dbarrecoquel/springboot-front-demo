@@ -20,9 +20,11 @@ public interface HolidayDatesMapper {
     @Mapping(source = "warehouse.id", target = "warehouseId")
     @Mapping(source = "warehouse.name", target = "warehouseName")
     @Mapping(source = "warehouse.code", target = "warehouseCode")
+    @Mapping(source = "isRecurring", target = "recurring")
     HolidayDatesDto toDto(HolidayDate date);
 
     @Mapping(source = "warehouse.name", target = "warehouseName")
+    @Mapping(source = "isRecurring", target = "recurring")
     HolidayDatesListDto toListDto(HolidayDate date);
 
     @Mapping(target = "warehouse", expression = "java(createWarehouseFromDto(dto))")
