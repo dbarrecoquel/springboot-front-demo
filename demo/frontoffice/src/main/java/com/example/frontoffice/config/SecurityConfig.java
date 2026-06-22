@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -45,6 +46,8 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/login")
+                .usernameParameter("username") // Lie explicitement le name="username" du HTML
+                .passwordParameter("password")
                 .successHandler(authenticationSuccessHandler())
                 .permitAll()
             )
@@ -96,9 +99,10 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return email -> {
+        	System.out.println("Tentative de chargement de l'utilisateur avec l'email : " + email);
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
-            
+            System.out.println("Utilisateur trouvé en BDD ! Nom: " + user.getLastName());
             return org.springframework.security.core.userdetails.User
                     .withUsername(user.getEmail())
                     .password(user.getPassword())
@@ -107,7 +111,14 @@ public class SecurityConfig {
                     .build();
         };
     }
-    
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService());
+        
+        authProvider.setPasswordEncoder(passwordEncoder());
+        
+        return authProvider;
+    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

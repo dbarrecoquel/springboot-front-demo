@@ -38,9 +38,15 @@
                 <p class="text-muted" th:text="${product.description}">Product description goes here</p>
 
                 <div class="mt-4">
+                
+                <form th:action="@{/basket/add}" method="post" onclick="event.stopPropagation();">
                     <button class="btn btn-primary btn-lg">
                         <i class="bi bi-cart-plus"></i> Add to Cart
                     </button>
+                    <input type="hidden" name="productId" th:value="${product.id}">
+                    
+                    <input type="hidden" name="quantity" value="1">
+                </form>
                     <a href="/catalog" class="btn btn-outline-secondary btn-lg">
                         <i class="bi bi-arrow-left"></i> Back to Catalog
                     </a>
