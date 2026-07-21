@@ -1,11 +1,13 @@
 package com.example.shopping.service;
 
 import com.example.shopping.model.Basket;
+import com.example.shopping.model.ProductLineItem;
 import com.example.shopping.repository.BasketRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -119,5 +121,27 @@ public class BasketService {
                     basket.setGuestId(guestId);
                     return basketRepository.save(basket);
                 });
+    }
+    public Basket mergeGuestBasketToUser(Long userId, String guestId) {
+        Basket userBasket = getOrCreateBasketForUser(userId);
+        Optional<Basket> guestBasketOpt = basketRepository.findByGuestId(guestId);
+
+        if (guestBasketOpt.isPresent()) {
+            Basket guestBasket = guestBasketOpt.get();
+            // Déplacer les items du panier invité vers le panier utilisateur
+            List<ProductLineItem> guestItems = lineItemService.getLineItemsByBasketId(guestBasket.getId());
+            for (ProductLineItem item : guestItems) {
+                lineItemService.addOrUpdateLineItem(
+                    userBasket.getId(),
+                    item.getProductId(),
+                    item.getQuantity(),
+                    item.getUnitPrice()
+                );
+            }
+            // Supprimer le panier invité
+            lineItemService.clearBasket(guestBasket.getId());
+            basketRepository.delete(guestBasket);
+        }
+        return userBasket;
     }
 }

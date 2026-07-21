@@ -70,7 +70,7 @@ public class BasketController {
             guestId = UUID.randomUUID().toString();
         }
         Basket basket = getBasket(authentication, guestId);
-
+        
 
         List<ProductLineItem> items = lineItemService.getLineItemsByBasketId(basket.getId());
         Double total = lineItemService.calculateBasketTotal(basket.getId());
@@ -212,20 +212,16 @@ public class BasketController {
     }
     
     private Basket getBasket(Authentication authentication, String guestId) {
-    	Basket basket;
-
         if (authentication != null && authentication.isAuthenticated()) {
-            // USER CONNECTÉ
             User user = userService.findByEmail(authentication.getName())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            basket = basketService.getOrCreateBasketForUser(user.getId());
-
-        } else {
-           
-
-            basket = basketService.getOrCreateBasketForGuest(guestId);
+            // Fusionner le panier invité si guestId présent
+            if (guestId != null) {
+                return basketService.mergeGuestBasketToUser(user.getId(), guestId);
+            }
+            return basketService.getOrCreateBasketForUser(user.getId());
         }
-        return basket;
+        return basketService.getOrCreateBasketForGuest(guestId);
     }
 }

@@ -18,14 +18,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 	Optional<Product> findBySku(String sku);
 	@Query("""
 			SELECT p FROM Product p
-			WHERE (:keyword IS NULL OR 
-			      LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
-			      LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+			WHERE (:search = '' OR 
+			      LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) OR
+			      LOWER(p.description) LIKE LOWER(CONCAT('%', :search, '%')))
 			AND (:minPrice IS NULL OR p.price >= :minPrice)
 			AND (:maxPrice IS NULL OR p.price <= :maxPrice)
 			""")
 	    Page<Product> findWithFilters(
-	        @Param("keyword") String search,
+	        @Param("search") String search,
 	        @Param("minPrice") Double minPrice,
 	        @Param("maxPrice") Double maxPrice,
 	        Pageable pageable);

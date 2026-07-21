@@ -152,7 +152,14 @@ public class CatalogNavigationController {
 
     return ResponseEntity.ok(getProductsReponse(page, size, sortBy, direction, search, minPrice, maxPrice));
 }
-    
+    @GetMapping("/products/{id}")
+    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+        return productService.getProductById(id)
+                .map(product -> {
+                    return ResponseEntity.ok(product);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
     private Map<String, Object> getProductsReponse(int page,
             int size,
             String sortBy,

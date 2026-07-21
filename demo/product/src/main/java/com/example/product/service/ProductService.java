@@ -47,7 +47,8 @@ public class ProductService {
     public Page<Product> findWithFilters(String keyword,
             Double minPrice, Double maxPrice,
             Pageable pageable) {
-
+    	if (keyword == null)
+    		keyword="";
         return productRepository.findWithFilters(keyword, minPrice, maxPrice, pageable);
     }
 
