@@ -1,0 +1,1 @@
+TRUNCATE TABLE categories,product_category_assignment RESTART IDENTITY CASCADE;
