@@ -40,6 +40,7 @@
         <module>frontrest</module>
         <module>events</module>
         <module>shipping-method</module>
+        <module>order</module>
     </modules>
 
     <dependencyManagement>

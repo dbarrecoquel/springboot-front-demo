@@ -141,13 +141,15 @@ public class CheckoutController {
 	    if (plis.isEmpty())
 	        return ResponseEntity.badRequest().build();
 
-	    if (basket.getBillingAddressId() == null || basket.getShippingAddressId() == null)
-	        return ResponseEntity.badRequest().build();
+	    // ← OR au lieu de AND : si l'une OU l'autre est null, on bloque
+	    if (basket.getShippingAddressId() == null || basket.getBillingAddressId() == null)
+	        return ResponseEntity.status(400).body(null);
 
 	    Address address = addressService.getAddressById(basket.getShippingAddressId())
 	            .orElseThrow(() -> new RuntimeException("Cant get address"));
 
-	    List<ShippingMethodDto> ship = shippingMethodService.getAvailaShippingMethods(address.getCountry())
+	    List<ShippingMethodDto> ship = shippingMethodService
+	            .getAvailaShippingMethods(address.getCountry())
 	            .stream()
 	            .map(shippMapper::toDto)
 	            .collect(Collectors.toList());
