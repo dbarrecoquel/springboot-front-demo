@@ -1,0 +1,1 @@
+TRUNCATE TABLE product_line_items, baskets RESTART IDENTITY CASCADE;
