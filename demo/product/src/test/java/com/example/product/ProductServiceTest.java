@@ -62,13 +62,13 @@ public class ProductServiceTest {
         @Test
         @DisplayName("getAllProducts - doit retourner la liste de tous les produits")
         void shouldGetAllProducts() {
-            // GIVEN
+           
             when(productRepository.findAll()).thenReturn(List.of(product1, product2));
 
-            // WHEN
+           
             List<Product> result = productService.getAllProducts();
 
-            // THEN
+            
             assertThat(result)
                 .isNotNull()
                 .hasSize(2)
@@ -80,13 +80,12 @@ public class ProductServiceTest {
         @Test
         @DisplayName("getProductById - doit retourner le produit si trouvé")
         void shouldGetProductById_WhenFound() {
-            // GIVEN
+            
             when(productRepository.findById(1L)).thenReturn(Optional.of(product1));
 
-            // WHEN
+            
             Optional<Product> result = productService.getProductById(1L);
 
-            // THEN
             assertThat(result).isPresent().contains(product1);
             verify(productRepository).findById(1L);
         }
@@ -94,13 +93,13 @@ public class ProductServiceTest {
         @Test
         @DisplayName("getProductById - doit retourner Optional.empty() si non trouvé")
         void shouldGetProductById_WhenNotFound() {
-            // GIVEN
+            
             when(productRepository.findById(99L)).thenReturn(Optional.empty());
 
-            // WHEN
+            
             Optional<Product> result = productService.getProductById(99L);
 
-            // THEN
+           
             assertThat(result).isEmpty();
             verify(productRepository).findById(99L);
         }
@@ -108,13 +107,13 @@ public class ProductServiceTest {
         @Test
         @DisplayName("getProductBySku - doit retourner le produit si le SKU existe")
         void shouldGetProductBySku_WhenFound() {
-            // GIVEN
+            
             when(productRepository.findBySku("KEY-MEC-001")).thenReturn(Optional.of(product1));
 
-            // WHEN
+            
             Optional<Product> result = productService.getProductBySku("KEY-MEC-001");
 
-            // THEN
+            
             assertThat(result).isPresent().contains(product1);
             verify(productRepository).findBySku("KEY-MEC-001");
         }
@@ -122,13 +121,13 @@ public class ProductServiceTest {
         @Test
         @DisplayName("getProductBySku - doit retourner Optional.empty() si le SKU n'existe pas")
         void shouldGetProductBySku_WhenNotFound() {
-            // GIVEN
+            
             when(productRepository.findBySku("UNKNOWN-SKU")).thenReturn(Optional.empty());
 
-            // WHEN
+           
             Optional<Product> result = productService.getProductBySku("UNKNOWN-SKU");
 
-            // THEN
+         
             assertThat(result).isEmpty();
             verify(productRepository).findBySku("UNKNOWN-SKU");
         }
@@ -136,14 +135,14 @@ public class ProductServiceTest {
         @Test
         @DisplayName("findAllByIds - doit retourner les produits correspondants aux IDs")
         void shouldFindAllByIds() {
-            // GIVEN
+           
             List<Long> ids = List.of(1L, 2L);
             when(productRepository.findAllById(ids)).thenReturn(List.of(product1, product2));
 
-            // WHEN
+           
             List<Product> result = productService.findAllByIds(ids);
 
-            // THEN
+          
             assertThat(result)
                 .isNotNull()
                 .hasSize(2)
@@ -160,7 +159,7 @@ public class ProductServiceTest {
         @Test
         @DisplayName("findWithFilters - doit transmettre le mot-clé et les filtres de prix")
         void shouldFindWithFilters_WhenKeywordIsProvided() {
-            // GIVEN
+           
             String keyword = "Clavier";
             Double minPrice = 50.0;
             Double maxPrice = 150.0;
@@ -170,10 +169,10 @@ public class ProductServiceTest {
             when(productRepository.findWithFilters(keyword, minPrice, maxPrice, pageable))
                 .thenReturn(expectedPage);
 
-            // WHEN
+            
             Page<Product> result = productService.findWithFilters(keyword, minPrice, maxPrice, pageable);
 
-            // THEN
+           
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1).containsExactly(product1);
             assertThat(result.getTotalElements()).isEqualTo(1);
@@ -184,24 +183,23 @@ public class ProductServiceTest {
         @Test
         @DisplayName("findWithFilters - doit remplacer un mot-clé null par une chaîne vide \"\"")
         void shouldFindWithFilters_WhenKeywordIsNull() {
-            // GIVEN
+            
             Double minPrice = 10.0;
             Double maxPrice = 200.0;
             Pageable pageable = PageRequest.of(0, 10);
             Page<Product> expectedPage = new PageImpl<>(List.of(product1, product2), pageable, 2);
 
-            // Remarquez l'attente de "" au lieu de null
+          
             when(productRepository.findWithFilters(eq(""), eq(minPrice), eq(maxPrice), eq(pageable)))
                 .thenReturn(expectedPage);
 
-            // WHEN
+            
             Page<Product> result = productService.findWithFilters(null, minPrice, maxPrice, pageable);
 
-            // THEN
+           
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(2);
 
-            // Vérification clé : le repository a reçu "" à la place de null
             verify(productRepository).findWithFilters("", minPrice, maxPrice, pageable);
         }
     }
@@ -213,13 +211,13 @@ public class ProductServiceTest {
         @Test
         @DisplayName("saveProduct - doit sauvegarder et retourner le produit")
         void shouldSaveProduct() {
-            // GIVEN
+            
             when(productRepository.save(product1)).thenReturn(product1);
 
-            // WHEN
+           
             Product result = productService.saveProduct(product1);
 
-            // THEN
+          
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(1L);
             assertThat(result.getName()).isEqualTo("Clavier Mécanique");
@@ -230,10 +228,10 @@ public class ProductServiceTest {
         @Test
         @DisplayName("deleteProduct - doit appeler deleteById sur le repository")
         void shouldDeleteProduct() {
-            // WHEN
+            
             productService.deleteProduct(1L);
 
-            // THEN
+           
             verify(productRepository).deleteById(1L);
         }
     }

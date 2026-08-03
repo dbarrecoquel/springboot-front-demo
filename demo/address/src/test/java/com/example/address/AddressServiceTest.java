@@ -202,4 +202,17 @@ public class AddressServiceTest {
 		    verify(addressRepository).save(newAddress);
 		}
 	}
+	@Nested
+	@DisplayName("Remove tests")
+	class RemoveTests{
+		
+		@Test
+		@DisplayName("should remove address")
+		void shouldRemoveAddress() {
+			addressService.deleteAddress(1L);
+			
+			verify(addressRepository).deleteById(1L);
+		}
+		
+	}
 }
