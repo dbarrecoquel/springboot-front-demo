@@ -45,7 +45,7 @@ public class ProductCategoryAssignmentServiceTest {
     
     @Nested
     @DisplayName("Recherches simples")
-    class ReadTests {
+    class FindTests {
 
         @Test
         @DisplayName("getAssignmentsByProductId - doit retourner la liste des assignations")
