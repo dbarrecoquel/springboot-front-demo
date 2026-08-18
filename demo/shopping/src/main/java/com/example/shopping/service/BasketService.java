@@ -3,14 +3,23 @@ package com.example.shopping.service;
 import com.example.shopping.model.Basket;
 import com.example.shopping.model.ProductLineItem;
 import com.example.shopping.repository.BasketRepository;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.util.List;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import java.util.Optional;
 
 @Service
+@Slf4j
 @Transactional
 public class BasketService {
     
@@ -21,6 +30,10 @@ public class BasketService {
                         @Lazy ProductLineItemService lineItemService) {
         this.basketRepository = basketRepository;
         this.lineItemService = lineItemService;
+    }
+    
+    public Optional<Basket> getBasketById(Long basketId) {
+    	return basketRepository.findById(basketId);
     }
     
     public Basket getOrCreateBasket(Long userId, String sessionId) {
@@ -143,5 +156,58 @@ public class BasketService {
             basketRepository.delete(guestBasket);
         }
         return userBasket;
+    }
+    /**
+     * Définir l'entrepôt
+     */
+    public Basket setWarehouse(Long basketId, Long warehouseId) {
+        Basket basket = basketRepository.findById(basketId)
+            .orElseThrow(() -> new RuntimeException("Panier non trouvé"));
+        
+        basket.setWarehouseId(warehouseId);
+        basket.setUpdatedAt(LocalDateTime.now());
+        
+        log.info("Entrepôt défini pour le panier: {} | Warehouse: {}", basketId, warehouseId);
+        
+        return basketRepository.save(basket);
+    }
+    /**
+     * Définir le service de transport (nouveau système)
+     */
+    public Basket setCarrierService(Long basketId, Long carrierServiceId) {
+        Basket basket = basketRepository.findById(basketId)
+            .orElseThrow(() -> new RuntimeException("Panier non trouvé"));
+        
+        basket.setCarrierServiceId(carrierServiceId);
+        basket.setUpdatedAt(LocalDateTime.now());
+        
+        log.info("Service de transport défini pour le panier: {} | CarrierService: {}", 
+            basketId, carrierServiceId);
+        
+        return basketRepository.save(basket);
+    }
+    public Basket setDeliveryEstimates(Long basketId, LocalDate estimate, LocalDate latestEstimate) {
+    	Basket basket = basketRepository.findById(basketId)
+    			.orElseThrow(() -> new RuntimeException("Panier non trouvé"));
+    	basket.setEstimatedDeliveryDate(estimate);
+    	basket.setLatestDeliveryDate(latestEstimate);
+    	basket.setUpdatedAt(LocalDateTime.now());
+    	
+    	return basketRepository.save(basket);
+    }
+    /**
+     * Marquer le panier comme complété
+     */
+    public Basket completeBasket(Long basketId) {
+        Basket basket = basketRepository.findById(basketId)
+            .orElseThrow(() -> new RuntimeException("Panier non trouvé"));
+        
+        basket.setStatus("COMPLETED");
+        basket.setUpdatedAt(LocalDateTime.now());
+        
+        log.info("Panier complété: {}", basketId);
+        
+        return basketRepository.save(basket);
+
     }
 }

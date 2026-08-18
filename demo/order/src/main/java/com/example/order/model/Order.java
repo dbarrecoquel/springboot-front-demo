@@ -11,8 +11,14 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @Column(nullable = false, unique = true)
+    private String orderNumber;
+    
     @Column(name = "user_id")
     private Long userId;
+    
+    @Column(name = "basket_id")
+    private Long basketId;
     
     @Column(name = "billing_address_id")
     private Long billingAddressId;
@@ -21,7 +27,7 @@ public class Order {
     private Long shippingAddressId;
     
     @Column(name = "status")
-    private String status = "ACTIVE";
+    private String status = "PENDING";
     
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -31,6 +37,18 @@ public class Order {
     
     @Column(name = "shipping_method_id")
     private Long shippingMethodId;
+    
+    @Column(nullable = false)
+    private Double subtotal = 0.0;
+    
+    @Column(nullable = false)
+    private Double shippingCost = 0.0;
+    
+    @Column(nullable = false)
+    private Double tax = 0.0;
+    
+    @Column(nullable = false)
+    private Double total = 0.0;
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -113,6 +131,54 @@ public class Order {
 
 	public void setShippingMethodId(Long shippingMethodId) {
 		this.shippingMethodId = shippingMethodId;
+	}
+
+	public Long getBasketId() {
+		return basketId;
+	}
+
+	public void setBasketId(Long basketId) {
+		this.basketId = basketId;
+	}
+
+	public Double getSubtotal() {
+		return subtotal;
+	}
+
+	public void setSubtotal(Double subtotal) {
+		this.subtotal = subtotal;
+	}
+
+	public Double getShippingCost() {
+		return shippingCost;
+	}
+
+	public void setShippingCost(Double shippingCost) {
+		this.shippingCost = shippingCost;
+	}
+
+	public Double getTax() {
+		return tax;
+	}
+
+	public void setTax(Double tax) {
+		this.tax = tax;
+	}
+
+	public Double getTotal() {
+		return total;
+	}
+
+	public void setTotal(Double total) {
+		this.total = total;
+	}
+
+	public String getOrderNumber() {
+		return orderNumber;
+	}
+
+	public void setOrderNumber(String orderNumber) {
+		this.orderNumber = orderNumber;
 	}
 
 	

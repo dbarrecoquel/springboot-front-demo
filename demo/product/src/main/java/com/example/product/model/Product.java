@@ -23,6 +23,8 @@ public class Product {
     @Positive(message = "Price must be positive")
     private Double price;
     
+    private boolean active = true;
+    
     // Constructors
     public Product() {}
     
@@ -71,5 +73,13 @@ public class Product {
 
 	public void setSku(String sku) {
 		this.sku = sku;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 }

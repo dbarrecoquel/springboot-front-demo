@@ -16,6 +16,12 @@
     <description>Shipping Method management module</description>
 
     <dependencies>
+    	<dependency>
+            <groupId>com.example</groupId>
+            <artifactId>product</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
         <!-- Spring Boot Starter Data JPA -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

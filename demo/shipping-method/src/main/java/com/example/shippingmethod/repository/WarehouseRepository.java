@@ -12,4 +12,6 @@ public interface WarehouseRepository extends JpaRepository<Warehouse, Long> {
 	List<Warehouse> findByEnabledTrue();
 	Optional<Warehouse> findByCode(String code);
 	List<Warehouse> findByRegion(String region);
+    List<Warehouse> findByCountry(String country);
+    List<Warehouse> findByCountryAndEnabledTrue(String country);
 }

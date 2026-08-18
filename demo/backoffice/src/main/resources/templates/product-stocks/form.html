@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gestion des stocks - Backoffice</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f7fafc;
+        }
+        .form-card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+        
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    
+
+    <div class="container mt-5 mb-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                
+                <!-- En-tête -->
+                <div class="mb-4">
+                    <h1 class="mb-2">
+                        <i class="bi bi-box"></i>
+                        <span th:if="${isEdit}">Modifier le stock</span>
+                        <span th:unless="${isEdit}">Créer un nouveau stock</span>
+                    </h1>
+                    <p class="text-muted">
+                        <span th:if="${isEdit}">Modifiez les informations du stock</span>
+                        <span th:unless="${isEdit}">Ajoutez un nouveau stock de produit</span>
+                    </p>
+                </div>
+                
+                <!-- Formulaire ÉDITION -->
+                <form class="form-card card p-4 p-md-5"
+                      th:if="${isEdit}"
+                      th:action="@{'/product-stocks/' + ${stock.productId} + '/warehouse/' + ${stock.warehouseId}}"
+                      method="post">
+                    
+                    <!-- Produit ID et Entrepôt -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="productId" class="form-label">
+                                ID Produit <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" 
+                                   class="form-control form-control-lg" 
+                                   id="productId" 
+                                   name="productId"
+                                   th:value="${stock?.productId ?: ''}"
+                                   disabled
+                                   required>
+                            <small class="form-text text-muted">ID unique du produit (non modifiable)</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="warehouseId" class="form-label">
+                                Entrepôt <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select form-select-lg" 
+                                    id="warehouseId" 
+                                    name="warehouseId"
+                                    disabled
+                                    required>
+                                <option th:each="warehouse : ${warehouses}" 
+                                        th:value="${warehouse.id}"
+                                        th:text="${warehouse.name}"
+                                        th:selected="${warehouse.id == stock?.warehouseId}"></option>
+                            </select>
+                            <small class="form-text text-muted">Entrepôt (non modifiable)</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Quantité et Stock minimum -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="quantity" class="form-label">
+                                Quantité en stock <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" 
+                                   class="form-control form-control-lg" 
+                                   id="quantity" 
+                                   name="quantity"
+                                   th:value="${stock?.quantity ?: 0}"
+                                   min="0" 
+                                   required>
+                            <small class="form-text text-muted">Nombre d'unités actuellement en stock</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="minimumStock" class="form-label">
+                                Stock minimum <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" 
+                                   class="form-control form-control-lg" 
+                                   id="minimumStock" 
+                                   name="minimumStock"
+                                   th:value="${stock?.minimumStock ?: 10}"
+                                   min="0" 
+                                   required>
+                            <small class="form-text text-muted">Alerte si quantité tombe en dessous</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Info statut -->
+                    <div class="alert alert-light border border-info mt-3">
+                        <i class="bi bi-info-circle text-info"></i>
+                        <strong>Statut automatique :</strong>
+                        <br>
+                        <small>
+                            <span class="badge bg-success">✅ DISPONIBLE</span> si quantité &gt; stock minimum<br>
+                            <span class="badge bg-warning">⚠️ STOCK FAIBLE</span> si quantité = stock minimum<br>
+                            <span class="badge bg-danger">❌ RUPTURE</span> si quantité = 0
+                        </small>
+                    </div>
+                    
+                    <!-- Boutons d'action -->
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i> Mettre à jour
+                        </button>
+                        
+                        <a href="/product-stocks" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                    </div>
+                    
+                </form>
+                
+                <!-- Formulaire CRÉATION -->
+                <form class="form-card card p-4 p-md-5"
+                      th:unless="${isEdit}"
+                      action="/product-stocks" 
+                      method="post">
+                    
+                    <!-- Produit ID et Entrepôt -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="productIdCreate" class="form-label">
+                                ID Produit <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" 
+                                   class="form-control form-control-lg" 
+                                   id="productIdCreate" 
+                                   name="productId"
+                                   min="1"
+                                   placeholder="Ex: 1"
+                                   required>
+                            <small class="form-text text-muted">ID unique du produit</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="warehouseIdCreate" class="form-label">
+                                Entrepôt <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select form-select-lg" 
+                                    id="warehouseIdCreate" 
+                                    name="warehouseId"
+                                    required>
+                                <option value="">-- Choisir un entrepôt --</option>
+                                <option th:each="warehouse : ${warehouses}" 
+                                        th:value="${warehouse.id}"
+                                        th:text="${warehouse.name}"></option>
+                            </select>
+                            <small class="form-text text-muted">Sélectionnez l'entrepôt</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Quantité et Stock minimum -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="quantityCreate" class="form-label">
+                                Quantité en stock <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" 
+                                   class="form-control form-control-lg" 
+                                   id="quantityCreate" 
+                                   name="quantity"
+                                   value="0"
+                                   min="0" 
+                                   placeholder="0"
+                                   required>
+                            <small class="form-text text-muted">Nombre d'unités en stock</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="minimumStockCreate" class="form-label">
+                                Stock minimum <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" 
+                                   class="form-control form-control-lg" 
+                                   id="minimumStockCreate" 
+                                   name="minimumStock"
+                                   value="10"
+                                   min="0" 
+                                   placeholder="10"
+                                   required>
+                            <small class="form-text text-muted">Alerte si stock en dessous</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Info statut -->
+                    <div class="alert alert-light border border-info mt-3">
+                        <i class="bi bi-info-circle text-info"></i>
+                        <strong>Statut automatique :</strong>
+                        <br>
+                        <small>
+                            <span class="badge bg-success">✅ DISPONIBLE</span> si quantité &gt; stock minimum<br>
+                            <span class="badge bg-warning">⚠️ STOCK FAIBLE</span> si quantité = stock minimum<br>
+                            <span class="badge bg-danger">❌ RUPTURE</span> si quantité = 0
+                        </small>
+                    </div>
+                    
+                    <!-- Boutons d'action -->
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Créer le stock
+                        </button>
+                        
+                        <a href="/product-stocks" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                    </div>
+                    
+                </form>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light border-top mt-5 py-4">
+        <div class="container text-center">
+            <small class="text-muted">&copy; 2026 E-Commerce Admin. Tous droits réservés.</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Validation du formulaire avant soumission
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+        });
+    </script>
+</body>
+</html>

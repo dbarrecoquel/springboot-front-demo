@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gestion des stocks - Backoffice</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .status-badge {
+            font-weight: 600;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+        }
+        .status-available {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .status-low-stock {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+        .status-out-of-stock {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        .stock-row:hover {
+            background: #f7fafc;
+        }
+        .pagination-custom {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container mt-5 mb-5">
+        
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 class="mb-0">
+                    <i class="bi bi-box"></i> Gestion des stocks
+                </h1>
+                <p class="text-muted">Gérez les stocks par entrepôt et par produit</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="/product-stocks/create" class="btn btn-primary btn-lg">
+                    <i class="bi bi-plus-circle"></i> Ajouter un stock
+                </a>
+            </div>
+        </div>
+        
+        <!-- Alerts -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle-fill"></i> [[${success}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle-fill"></i> [[${error}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        
+        <!-- Filtres -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Entrepôt</label>
+                        <select name="warehouseId" class="form-select">
+                            <option value="">-- Tous les entrepôts --</option>
+                            <option th:each="warehouse : ${warehouses}" 
+                                    th:value="${warehouse.id}"
+                                    th:selected="${warehouse.id == selectedWarehouseId}"
+                                    th:text="${warehouse.name}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Statut</label>
+                        <select name="status" class="form-select">
+                            <option value="">-- Tous les statuts --</option>
+                            <option value="AVAILABLE" th:selected="${selectedStatus == 'AVAILABLE'}">Disponible</option>
+                            <option value="LOW_STOCK" th:selected="${selectedStatus == 'LOW_STOCK'}">Stock faible</option>
+                            <option value="OUT_OF_STOCK" th:selected="${selectedStatus == 'OUT_OF_STOCK'}">Rupture</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-search"></i> Filtrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Résumé des résultats -->
+        <div class="mb-3">
+            <small class="text-muted">
+                Affichage de 
+                <strong th:text="${stocks.size()}"></strong> 
+                stock(s) sur 
+                <strong th:text="${totalElements}"></strong>
+                au total
+            </small>
+        </div>
+        
+        <!-- Table des stocks -->
+        <div class="card shadow-sm">
+            <div th:if="${stocks.isEmpty()}" class="alert alert-info m-3">
+                <i class="bi bi-info-circle"></i> Aucun stock trouvé avec ces critères.
+            </div>
+            
+            <table class="table table-hover mb-0" th:unless="${stocks.isEmpty()}">
+                <thead class="table-light">
+                    <tr>
+                        <th>Produit ID</th>
+                        <th>Entrepôt</th>
+                        <th>Quantité</th>
+                        <th>Stock minimum</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- BOUCLE SUR LES STOCKS -->
+                    <tr class="stock-row" th:each="stock : ${stocks}">
+                        <td>
+                            <strong th:text="'#' + ${stock.productId}"></strong>
+                        </td>
+                        <td>
+                            <span th:text="${stock.warehouseName}"></span>
+                            <br>
+                            <small class="text-muted" th:text="'(' + ${stock.warehouseCode} + ')'"></small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark" th:text="${stock.quantity}"></span>
+                        </td>
+                        <td th:text="${stock.minimumStock}"></td>
+                        <td>
+                            <span th:if="${stock.status == 'AVAILABLE'}" class="status-badge status-available">
+                                <i class="bi bi-check-circle"></i> Disponible
+                            </span>
+                            <span th:if="${stock.status == 'LOW_STOCK'}" class="status-badge status-low-stock">
+                                <i class="bi bi-exclamation-circle"></i> Stock faible
+                            </span>
+                            <span th:if="${stock.status == 'OUT_OF_STOCK'}" class="status-badge status-out-of-stock">
+                                <i class="bi bi-x-circle"></i> Rupture
+                            </span>
+                        </td>
+                        <td>
+                            <!-- Augmenter -->
+                            <form method="post" 
+                                  th:action="@{'/product-stocks/' + ${stock.productId} + '/warehouse/' + ${stock.warehouseId} + '/increase'}"
+                                  class="d-inline">
+                                <button type="submit" 
+                                        class="btn btn-sm btn-outline-success"
+                                        onclick="return prompt('Quantité à augmenter :', '') ? true : false"
+                                        name="quantity">
+                                    <i class="bi bi-plus-circle"></i>
+                                </button>
+                            </form>
+                            
+                            <!-- Réduire -->
+                            <form method="post" 
+                                  th:action="@{'/product-stocks/' + ${stock.productId} + '/warehouse/' + ${stock.warehouseId} + '/decrease'}"
+                                  class="d-inline">
+                                <button type="submit" 
+                                        class="btn btn-sm btn-outline-warning"
+                                        onclick="return prompt('Quantité à réduire :', '') ? true : false"
+                                        name="quantity">
+                                    <i class="bi bi-dash-circle"></i>
+                                </button>
+                            </form>
+                            
+                            <!-- Éditer -->
+                            <a th:href="@{'/product-stocks/' + ${stock.productId} + '/warehouse/' + ${stock.warehouseId} + '/edit'}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i> Éditer
+                            </a>
+                            
+                            <!-- Supprimer -->
+                            <a th:href="@{'/product-stocks/' + ${stock.productId} + '/warehouse/' + ${stock.warehouseId} + '/delete'}"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('Confirmer la suppression ?')">
+                                <i class="bi bi-trash"></i> Supprimer
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <nav th:if="${!stocks.isEmpty() && totalPages > 1}" class="pagination-custom">
+            <ul class="pagination">
+                <!-- Première page -->
+                <li class="page-item" th:classappend="${isFirstPage ? 'disabled' : ''}">
+                    <a class="page-link" 
+                       th:href="@{/product-stocks(page=0, warehouseId=${selectedWarehouseId}, status=${selectedStatus})}"
+                       href="#">
+                        <i class="bi bi-chevron-double-left"></i> Première
+                    </a>
+                </li>
+                
+                <!-- Page précédente -->
+                <li class="page-item" th:classappend="${!hasPreviousPage ? 'disabled' : ''}">
+                    <a class="page-link" 
+                       th:href="@{/product-stocks(page=${currentPage - 1}, warehouseId=${selectedWarehouseId}, status=${selectedStatus})}"
+                       href="#">
+                        <i class="bi bi-chevron-left"></i> Précédente
+                    </a>
+                </li>
+                
+                <!-- Pages -->
+                <li class="page-item active">
+                    <span class="page-link">
+                        Page <span th:text="${currentPage + 1}"></span> / <span th:text="${totalPages}"></span>
+                    </span>
+                </li>
+                
+                <!-- Page suivante -->
+                <li class="page-item" th:classappend="${!hasNextPage ? 'disabled' : ''}">
+                    <a class="page-link" 
+                       th:href="@{/product-stocks(page=${currentPage + 1}, warehouseId=${selectedWarehouseId}, status=${selectedStatus})}"
+                       href="#">
+                        Suivante <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                
+                <!-- Dernière page -->
+                <li class="page-item" th:classappend="${isLastPage ? 'disabled' : ''}">
+                    <a class="page-link" 
+                       th:href="@{/product-stocks(page=${totalPages - 1}, warehouseId=${selectedWarehouseId}, status=${selectedStatus})}"
+                       href="#">
+                        Dernière <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

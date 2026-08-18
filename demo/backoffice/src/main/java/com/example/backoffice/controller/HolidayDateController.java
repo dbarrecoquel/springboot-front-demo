@@ -1,6 +1,7 @@
 package com.example.backoffice.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.example.shippingmethod.dto.HolidayDatesDto;
 import com.example.shippingmethod.dto.HolidayDatesListDto;
 import com.example.shippingmethod.dto.WarehouseDto;
+import com.example.shippingmethod.mapper.WarehouseMapper;
 import com.example.shippingmethod.service.HolidayDatesService;
 import com.example.shippingmethod.service.WarehouseService;
 
@@ -28,6 +30,7 @@ public class HolidayDateController {
 
 	private final HolidayDatesService holidayDatesService;
 	private final WarehouseService warehouseService;
+	private final WarehouseMapper warehouseMapper;
 	@GetMapping
 	public String list(Model model) {
 		 try {
@@ -43,7 +46,7 @@ public class HolidayDateController {
 	 @GetMapping("/create")
     public String create(Model model) {
         try {
-            List<WarehouseDto> warehouses = warehouseService.findByEnabledTrue();
+            List<WarehouseDto> warehouses = warehouseService.getActiveWarehouses().stream().map(warehouseMapper::toDto).collect(Collectors.toList());
             
             // Créer un nouveau DTO avec les valeurs par défaut
             HolidayDatesDto newdate = HolidayDatesDto.builder()
@@ -85,7 +88,7 @@ public class HolidayDateController {
      public String edit(@PathVariable Long id, Model model) {
         try {
             HolidayDatesDto date = holidayDatesService.getHolidayDateById(id);
-            List<WarehouseDto> warehouses = warehouseService.findByEnabledTrue();
+            List<WarehouseDto> warehouses = warehouseService.getActiveWarehouses().stream().map(warehouseMapper::toDto).collect(Collectors.toList());
             
             // S'assurer que enabled n'est pas null
             if (date.getRecurring() == null) {

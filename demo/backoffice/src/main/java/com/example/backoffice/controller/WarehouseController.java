@@ -2,6 +2,7 @@ package com.example.backoffice.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.shippingmethod.dto.WarehouseDto;
+import com.example.shippingmethod.mapper.WarehouseMapper;
 import com.example.shippingmethod.model.Warehouse;
 import com.example.shippingmethod.service.WarehouseService;
 
@@ -26,10 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 public class WarehouseController {
 
 	private final WarehouseService warehouseService;
-	
+	private final WarehouseMapper warehouseMapper;
 	@GetMapping
 	public String list(Model model) {
-		List<WarehouseDto> list = warehouseService.getAllWarehouse();
+		List<WarehouseDto> list = warehouseService.getAllWarehouses().stream().map(warehouseMapper::toDto).collect(Collectors.toList());
 		model.addAttribute("warehouses", list);
 		return "warehouses/list";
 	}
@@ -54,7 +56,7 @@ public class WarehouseController {
     
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable Long id, Model model) {
-        WarehouseDto warehouse = warehouseService.getWarehouseById(id);
+        WarehouseDto warehouse = warehouseMapper.toDto(warehouseService.getWarehouseById(id).orElseThrow(() -> new RuntimeException("invalideId")));
             
         model.addAttribute("warehouse", warehouse);
         return "warehouses/form";

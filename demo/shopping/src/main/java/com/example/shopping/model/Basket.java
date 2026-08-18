@@ -1,6 +1,8 @@
 package com.example.shopping.model;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -36,6 +38,18 @@ public class Basket {
     private Long shippingMethodId;
     @Column(name = "guest_id")
     private String guestId;
+    @Column(name = "warehouse_id")
+    private Long warehouseId;
+    // Nouveau système - Service de Transport
+    @Column(name = "carrier_service_id")
+    private Long carrierServiceId;
+    
+    // Dates estimées de livraison
+    @Column(name = "estimated_delivery_date")
+    private LocalDate estimatedDeliveryDate;
+    @Column(name = "latest_delivery_date")
+    private LocalDate latestDeliveryDate;
+    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -134,5 +148,37 @@ public class Basket {
 
 	public void setGuestId(String guestId) {
 		this.guestId = guestId;
+	}
+
+	public Long getWarehouseId() {
+		return warehouseId;
+	}
+
+	public void setWarehouseId(Long warehouseId) {
+		this.warehouseId = warehouseId;
+	}
+
+	public Long getCarrierServiceId() {
+		return carrierServiceId;
+	}
+
+	public void setCarrierServiceId(Long carrierServiceId) {
+		this.carrierServiceId = carrierServiceId;
+	}
+
+	public LocalDate getEstimatedDeliveryDate() {
+		return estimatedDeliveryDate;
+	}
+
+	public void setEstimatedDeliveryDate(LocalDate estimatedDeliveryDate) {
+		this.estimatedDeliveryDate = estimatedDeliveryDate;
+	}
+
+	public LocalDate getLatestDeliveryDate() {
+		return latestDeliveryDate;
+	}
+
+	public void setLatestDeliveryDate(LocalDate latestDeliveryDate) {
+		this.latestDeliveryDate = latestDeliveryDate;
 	}
 }

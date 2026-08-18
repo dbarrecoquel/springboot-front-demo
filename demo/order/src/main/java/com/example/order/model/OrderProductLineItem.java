@@ -1,5 +1,7 @@
 package com.example.order.model;
 
+import java.time.LocalDateTime;
+
 import com.example.product.model.Product;
 import jakarta.persistence.*;
 
@@ -16,28 +18,45 @@ public class OrderProductLineItem {
     
     @Column(name = "product_id", nullable = false)
     private Long productId;
-    
+    @Column(nullable = false)
+    private String productName;
+    @Column(nullable = false)
+    private String productSku;
     @Column(nullable = false)
     private Integer quantity;
     
     @Column(nullable = false)
     private Double unitPrice; // Prix au moment de l'ajout au panier
-    
+    @Column(nullable = false)
+    private Double subtotal; 
     // Relation pour faciliter les requêtes
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", insertable = false, updatable = false)
     private Order order;
+ 
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
     
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "product_id", insertable = false, updatable = false)
-    private Product product;
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
     
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
     // Constructors
     public OrderProductLineItem() {}
     
-    public OrderProductLineItem(Long orderId, Long productId, Integer quantity, Double unitPrice) {
+    public OrderProductLineItem(Long orderId, Long productId, String productName, Integer quantity, Double unitPrice) {
         this.orderId = orderId;
         this.productId = productId;
+        this.productName = productName;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
     }
@@ -90,17 +109,50 @@ public class OrderProductLineItem {
     public void setBasket(Order order) {
         this.order = order;
     }
-    
-    public Product getProduct() {
-        return product;
-    }
-    
-    public void setProduct(Product product) {
-        this.product = product;
-    }
+   
     
     // Méthodes utiles
     public Double getSubtotal() {
         return unitPrice * quantity;
     }
+
+	public String getProductName() {
+		return productName;
+	}
+
+	public void setProductName(String productName) {
+		this.productName = productName;
+	}
+
+	public void setOrder(Order order) {
+		this.order = order;
+	}
+
+	public void setSubtotal(Double subtotal) {
+		this.subtotal = subtotal;
+	}
+
+	public String getProductSku() {
+		return productSku;
+	}
+
+	public void setProductSku(String productSku) {
+		this.productSku = productSku;
+	}
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
 }
