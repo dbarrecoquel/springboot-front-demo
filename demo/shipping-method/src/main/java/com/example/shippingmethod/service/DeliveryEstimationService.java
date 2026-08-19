@@ -43,11 +43,13 @@ public class DeliveryEstimationService {
 		
 		//determiner la date de début du traitement
 		LocalDate processingStartDate = calculateProcessingStartDate(orderDateTime, carrierService.getCutoffTime());
-		
+	
 		//calculer la date d'enlevement (après le délai de traitement)	
 		LocalDate pickUpDate = addBusinessDays(processingStartDate, carrierService.getProcessingDays(), warehouse.getId());
+	
 		// Calculer la date de livraison (après les jours de transport)
 		LocalDate deliveryDate = addBusinessDays(pickUpDate, carrierService.getDeliveryDays(), warehouse.getId());
+	
 		// Date la plus tardive (avec marge de sécurité)
 		LocalDate latestDeliveryDate = deliveryDate.plusDays(1);
 		
@@ -65,6 +67,7 @@ public class DeliveryEstimationService {
 		estimate.setOrderDate(orderDateTime);
 		estimate.setEarliestDeliveryDate(deliveryDate);
 		estimate.setLatestDeliveryDate(latestDeliveryDate);
+		estimate.setProcessingDays(carrierService.getProcessingDays());
 		estimate.setEstimatedDays(carrierService.getDeliveryDays() + carrierService.getProcessingDays());
 		estimate.setCost(cost);
 		estimate.setFreeShipping(freeShipping);
@@ -86,7 +89,7 @@ public class DeliveryEstimationService {
 		
 		while (daysAdded < businessDay)
 		{
-			currentDate.plusDays(1);
+			currentDate = currentDate.plusDays(1);
 			if (isBusinessDay(currentDate, warehouseId))
 				daysAdded++;
 				
@@ -131,7 +134,7 @@ public class DeliveryEstimationService {
 		
 		// Si la commande est après l'heure limite, traitement commençe le jour suivant
 		if (orderTime.isAfter(cutoffTime))
-			orderDate.plusDays(1);
+			orderDate = orderDate.plusDays(1);
 		
 		return orderDate;
 	}

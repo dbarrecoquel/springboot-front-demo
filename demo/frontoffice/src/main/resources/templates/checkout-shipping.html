@@ -1,20 +1,144 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Méthode de Livraison - E-Commerce Store</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Livraison - Checkout</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        body {
+            background-color: #f7fafc;
+        }
+        
+        .delivery-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        .delivery-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+        }
+        .delivery-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .warehouse-info {
+            background: #f8fafc;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .carrier-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #c3dafe;
+            color: #2c5282;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .timeline {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .timeline-item {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        .timeline-connector {
+            flex: 0.5;
+            height: 2px;
+            background: #e2e8f0;
+        }
+        
+        .price-badge {
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+        
+        .service-info {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        .summary-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            position: sticky;
+            top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+        }
+        
+        .summary-item-details {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-top: 2px;
+        }
+        
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a202c;
+            border-top: 2px solid #667eea;
+            border-bottom: 2px solid #667eea;
+            margin-top: 10px;
+        }
+        
+        .summary-total-amount {
+            color: #667eea;
+            font-size: 1.4rem;
+        }
+        
+        .badge-count {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.8rem;
+            margin-left: 5px;
+        }
+    </style>
 </head>
 <body>
+    
+    <!-- Progress Bar -->
     <div th:replace="~{fragments/navbar :: navbar(${rootCategories})}"></div>
 
-    <div class="container mt-5 mb-5">
-        <!-- Progress bar -->
+   
+    <div class="container my-5">
         <div class="row mb-4">
             <div class="col-12">
                 <div class="progress" style="height: 3px;">
-                    <div class="progress-bar bg-primary" role="progressbar" style="width: 75%"></div>
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: 50%"></div>
                 </div>
                 <div class="d-flex justify-content-between mt-2">
                     <span class="text-muted"><i class="bi bi-cart-check"></i> Panier</span>
@@ -24,128 +148,293 @@
                 </div>
             </div>
         </div>
-
-        <!-- Messages -->
+        <!-- Alerts -->
         <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
-            <i class="bi bi-check-circle"></i> <span th:text="${success}"></span>
+            <i class="bi bi-check-circle-fill"></i> [[${success}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle-fill"></i> [[${error}]]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
-            <i class="bi bi-exclamation-circle"></i> <span th:text="${error}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-
-        <form th:action="@{/checkout/shipping}" method="post">
-            <div class="row">
-                <!-- Méthodes de livraison -->
-                <div class="col-md-8">
-                    <div class="card mb-4">
-                        <div class="card-header bg-primary text-white">
-                            <h5><i class="bi bi-truck"></i> Choisir une méthode de livraison</h5>
-                            <small>Livraison vers: <span th:text="${shippingAddress.country}">France</span></small>
-                        </div>
-                        <div class="card-body">
-                            <div th:if="${#lists.isEmpty(shippingMethods)}" class="text-center py-4">
-                                <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
-                                <p class="mt-3">Aucune méthode de livraison disponible pour votre pays</p>
-                            </div>
-
-                            <div th:each="method : ${shippingMethods}" class="form-check mb-3 p-3 border rounded">
-                                <input class="form-check-input" type="radio" 
-                                       name="shippingMethodId" 
-                                       th:id="'method-' + ${method.id}"
-                                       th:value="${method.id}"
-                                       th:checked="${method.id == selectedShippingMethodId}"
-                                       required
-                                       onchange="updateShippingCost()">
-                                <label class="form-check-label w-100" th:for="'method-' + ${method.id}">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1" th:text="${method.name}">Standard</h6>
-                                            <p class="mb-1 text-muted small" th:text="${method.description}">Description</p>
-                                            <small class="text-muted">
-                                                <i class="bi bi-clock"></i> 
-                                                Délai: <span th:text="${method.estimatedDays}">3</span> jours
-                                            </small>
-                                        </div>
-                                        <div class="text-end">
-                                            <strong class="text-primary" 
-                                                    th:text="${method.cost == 0} ? 'GRATUIT' : ${#numbers.formatDecimal(method.cost, 1, 2)} + ' €'">
-                                                5.99 €
-                                            </strong>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Résumé -->
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5><i class="bi bi-receipt"></i> Résumé</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Sous-total</span>
-                                <span th:text="${#numbers.formatDecimal(subtotal, 1, 2)} + ' €'">0.00 €</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Livraison</span>
-                                <span id="shipping-cost-display" 
-                                      th:text="${shippingCost > 0} ? ${#numbers.formatDecimal(shippingCost, 1, 2)} + ' €' : 'Gratuit'">
-                                    0.00 €
-                                </span>
-                            </div>
-                            <hr>
-                            <div class="d-flex justify-content-between fw-bold fs-5">
-                                <span>Total</span>
-                                <span id="total-display" th:text="${#numbers.formatDecimal(total, 1, 2)} + ' €'">0.00 €</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-grid gap-2 mt-3">
-                        <button type="submit" class="btn btn-primary btn-lg"
-                                th:disabled="${#lists.isEmpty(shippingMethods)}">
-                            <i class="bi bi-arrow-right-circle"></i> Continuer
-                        </button>
-                        <a href="/checkout/addresses" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left-circle"></i> Retour
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                
+                <h2 class="mb-4">
+                    <i class="bi bi-truck"></i> Mode de livraison
+                </h2>
+                
+                <!-- Info entrepôt sélectionné -->
+                <div class="warehouse-info">
+                    <i class="bi bi-building"></i>
+                    <strong>Entrepôt sélectionné :</strong>
+                    <br>
+                    <span th:text="${warehouse.name}" class="fw-bold"></span>
+                    <small class="text-muted" th:text="'(' + ${warehouse.code} + ')'"></small>
+                    <br>
+                    <small class="text-muted" th:text="${warehouse.city + ', ' + warehouse.country}"></small>
+                    
+                    <!-- Bouton changement d'adresse -->
+                    <div class="mt-2">
+                        <a href="/checkout/addresses" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil"></i> Modifier
                         </a>
                     </div>
                 </div>
+                
+                <!-- Adresse de livraison -->
+                <div class="alert alert-light border mb-4">
+                    <i class="bi bi-geo-alt"></i>
+                    <strong>Livraison à :</strong>
+                    <br>
+                    <span th:text="${shippingAddress.street}"></span>
+                    <br>
+                    <span th:text="${shippingAddress.postalCode + ' ' + shippingAddress.city}"></span>
+                    <br>
+                    <small class="text-muted" th:text="${shippingAddress.country}"></small>
+                </div>
+                
+                <!-- Services de transport disponibles -->
+                <form action="/checkout/shipping" method="post" id="shippingForm">
+                    
+                    <!-- Aucun service disponible -->
+                    <div th:if="${deliveryEstimates.isEmpty()}" class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Aucun service de livraison disponible pour votre région.
+                        <a href="/checkout/addresses" class="alert-link">Modifier votre adresse</a>
+                    </div>
+                    
+                    <!-- Services disponibles -->
+                    <div th:each="estimate : ${deliveryEstimates}" 
+                         class="delivery-card card p-4 mb-4"
+                         th:classappend="${estimate.carrierServiceId == selectedCarrierServiceId ? 'selected' : ''}"
+                         th:data-carrier-service-id="${estimate.carrierServiceId}"
+                         th:data-service-name="${estimate.serviceName}"
+                         th:data-carrier-name="${estimate.carrierName}"
+                         th:data-cost="${estimate.cost}"
+                         th:data-free-shipping="${estimate.freeShipping}">
+                        
+                        <input type="radio" 
+                               name="carrierServiceId" 
+                               th:value="${estimate.carrierServiceId}"
+                               th:checked="${estimate.carrierServiceId == selectedCarrierServiceId}"
+                               style="display: none;">
+                        
+                        <!-- En-tête du service -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="flex-grow-1">
+                                <!-- Transporteur -->
+                                <span class="carrier-badge">
+                                    <i class="bi bi-box-seam"></i>
+                                    <span th:text="${estimate.carrierName}"></span>
+                                </span>
+                                
+                                <!-- Nom du service -->
+                                <h5 class="mb-1 mt-2">
+                                    <i class="bi bi-check-circle-fill" 
+                                       th:classappend="${estimate.carrierServiceId == selectedCarrierServiceId ? 'text-success' : 'text-muted'}"></i>
+                                    <strong th:text="${estimate.serviceName}"></strong>
+                                </h5>
+                                
+                                <!-- Description -->
+                                <small class="text-muted" th:text="${estimate.serviceDescription}"></small>
+                            </div>
+                            
+                            <!-- Prix -->
+                            <span class="price-badge ms-3" th:classappend="${estimate.freeShipping ? 'text-success' : ''}">
+                                <span th:if="${estimate.freeShipping}">
+                                    GRATUIT
+                                </span>
+                                <span th:unless="${estimate.freeShipping}">
+                                    <span th:text="${#numbers.formatDecimal(estimate.cost, 1, 2)}"></span>€
+                                </span>
+                            </span>
+                        </div>
+                        
+                        <!-- Timeline de livraison -->
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="text-muted small">Aujourd'hui</div>
+                                <strong class="text-primary">Commande</strong>
+                            </div>
+                            <div class="timeline-connector"></div>
+                            <div class="timeline-item">
+                                <div class="text-muted small">
+                                    +<span th:text="${estimate.processingDays}"></span>j
+                                </div>
+                                <strong>Traitement</strong>
+                            </div>
+                            <div class="timeline-connector"></div>
+                            <div class="timeline-item">
+                                <div class="text-muted small">Livraison</div>
+                                <strong class="text-success" 
+                                        th:text="${#temporals.format(estimate.earliestDeliveryDate, 'dd MMM')}"></strong>
+                                <br>
+                                <small class="text-muted">à</small>
+                                <br>
+                                <strong class="text-success" 
+                                        th:text="${#temporals.format(estimate.latestDeliveryDate, 'dd MMM')}"></strong>
+                            </div>
+                        </div>
+                        
+                        <!-- Détails du service -->
+                        <div class="service-info">
+                            <div class="row small">
+                                <div class="col-6">
+                                    <i class="bi bi-clock"></i> 
+                                    <strong>Délai total :</strong>
+                                    <span th:text="${estimate.estimatedDays} + ' jour(s)'"></span>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <i class="bi bi-moon"></i> 
+                                    <strong>Cutoff :</strong>
+                                    <span th:text="${estimate.cutoffTime}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Boutons d'action -->
+                    <div class="d-flex gap-3 mt-5">
+                        <a href="/checkout/addresses" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Retour
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg flex-grow-1" th:disabled="${deliveryEstimates.isEmpty()}">
+                            Continuer vers le paiement
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                    
+                </form>
+                
             </div>
-        </form>
+            
+            <!-- Sidebar - Order Summary -->
+            <div class="col-lg-4">
+                <div class="summary-card">
+                    <h5 class="mb-4">
+                        <i class="bi bi-receipt"></i> Résumé de la commande
+                        <span class="badge-count" th:text="${#lists.size(items)}"></span>
+                    </h5>
+                    
+                    <!-- Entrepôt -->
+                    <div class="mb-3 pb-3 border-bottom">
+                        <small class="text-muted"><i class="bi bi-building"></i> <strong>Entrepôt</strong></small>
+                        <br>
+                        <span th:text="${warehouse.name}"></span>
+                        <br>
+                        <small class="text-muted" th:text="${warehouse.region + ' (' + warehouse.country + ')'}"></small>
+                    </div>
+                    
+                    <!-- Articles détaillés -->
+                    <div class="mb-3 pb-3 border-bottom">
+                        <small class="text-muted d-block mb-2"><strong>Articles</strong></small>
+                        <div th:each="item : ${items}" class="summary-item">
+                            <div>
+                                <strong th:text="${item.product.name}"></strong>
+                                <div class="summary-item-details">
+                                    Qté: <span th:text="${item.quantity}"></span> × 
+                                    <span th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2)}"></span>€
+                                </div>
+                            </div>
+                            <span th:text="${#numbers.formatDecimal(item.quantity * item.unitPrice, 1, 2)} + '€'"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Totaux -->
+                    <div class="mb-2">
+                        <div class="summary-item">
+                            <span>Sous-total</span>
+                            <span th:text=" ${#numbers.formatDecimal(subtotal, 1, 2)} + '€'"></span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Taxe</span>
+                            <span th:text="${#numbers.formatDecimal(tax, 1, 2)} + '€'"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Livraison sélectionnée -->
+                    <div class="mb-3 pb-3 border-bottom">
+                        <small class="text-muted d-block mb-2"><strong>Livraison</strong></small>
+                        <div id="selectedDeliveryInfo" class="small">
+                            <p class="text-muted mb-0">Sélectionnez un mode</p>
+                        </div>
+                    </div>
+                    
+                    <!-- TOTAL -->
+                    <div class="summary-total">
+                        <span>TOTAL</span>
+                        <span class="summary-total-amount" th:text="${#numbers.formatDecimal(total, 1, 2)} + '€'"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script th:inline="javascript">
-    /*<![CDATA[*/
-    const shippingMethods = /*[[${shippingMethods}]]*/ [];
-    const subtotal = /*[[${subtotal}]]*/ 0;
-
-    function updateShippingCost() {
-        const selectedRadio = document.querySelector('input[name="shippingMethodId"]:checked');
-        if (!selectedRadio) return;
-
-        const selectedId = parseInt(selectedRadio.value);
-        const method = shippingMethods.find(m => m.id === selectedId);
-
-        if (method) {
-            const shippingCost = method.cost;
-            const total = subtotal + shippingCost;
-
-            document.getElementById('shipping-cost-display').textContent = 
-                shippingCost === 0 ? 'Gratuit' : shippingCost.toFixed(2) + ' €';
+    
+    <script>
+        // Ajouter les event listeners aux cartes
+        document.querySelectorAll('.delivery-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Ne pas déclencher si on clique sur l'input radio directement
+                if (e.target.tagName === 'INPUT') return;
+                
+                const carrierServiceId = this.dataset.carrierServiceId;
+                selectDeliveryService(carrierServiceId);
+            });
+        });
+        
+        function selectDeliveryService(carrierServiceId) {
+            // Sélectionner le radio
+            const radio = document.querySelector(`input[name="carrierServiceId"][value="${carrierServiceId}"]`);
+            if (radio) {
+                radio.checked = true;
+            }
             
-            document.getElementById('total-display').textContent = total.toFixed(2) + ' €';
+            // Mettre à jour le style des cartes
+            updateCardSelection();
+            
+            // Mettre à jour le résumé
+            updateDeliveryInfo(carrierServiceId);
         }
-    }
-    /*]]>*/
+        
+        function updateCardSelection() {
+            document.querySelectorAll('.delivery-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+                radio.closest('.delivery-card').classList.add('selected');
+            });
+        }
+        
+        function updateDeliveryInfo(carrierServiceId) {
+            const card = document.querySelector(`[data-carrier-service-id="${carrierServiceId}"]`);
+            if (!card) return;
+            
+            const serviceName = card.dataset.serviceName;
+            const carrierName = card.dataset.carrierName;
+            const cost = card.dataset.cost;
+            const freeShipping = card.dataset.freeShipping === 'true';
+            
+            const infoDiv = document.getElementById('selectedDeliveryInfo');
+            const costText = freeShipping ? 'GRATUIT' :  parseFloat(cost).toFixed(2) + '€';
+            
+            infoDiv.innerHTML = `
+                <strong>${serviceName}</strong><br>
+                <small class="text-muted">${carrierName}</small><br>
+                <strong>${costText}</strong>
+            `;
+            
+            
+        }
+        
+        // Initial setup
+        updateCardSelection();
     </script>
 </body>
 </html>

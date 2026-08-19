@@ -36,6 +36,8 @@ public class Address {
     @NotBlank(message = "Country is required")
     private String country;
     
+    private String region;
+    
     @Column(nullable = false)
     private String addressType; // "BILLING" or "SHIPPING"
     
@@ -154,4 +156,12 @@ public class Address {
         sb.append(", ").append(country);
         return sb.toString();
     }
+
+	public String getRegion() {
+		return region;
+	}
+
+	public void setRegion(String region) {
+		this.region = region;
+	}
 }

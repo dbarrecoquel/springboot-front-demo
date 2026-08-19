@@ -22,6 +22,7 @@ public class DeliveryEstimateDTO {
     private LocalDate earliestDeliveryDate;
     private LocalDate latestDeliveryDate;
     private Integer estimatedDays;
+    private Integer processingDays;
     
     // Coût
     private Double cost;
