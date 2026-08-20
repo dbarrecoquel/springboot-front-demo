@@ -1,0 +1,1 @@
+TRUNCATE TABLE payment_methods, transactions RESTART IDENTITY CASCADE;

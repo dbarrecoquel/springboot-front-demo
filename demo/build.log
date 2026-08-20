@@ -1,0 +1,45 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] demo                                                               [pom]
+[INFO] product                                                            [jar]
+[INFO] catalog                                                            [jar]
+[INFO] user                                                               [jar]
+[INFO] address                                                            [jar]
+[INFO] shipping-method                                                    [jar]
+[INFO] shopping                                                           [jar]
+[INFO] events                                                             [jar]
+[INFO] frontoffice                                                        [jar]
+[INFO] backoffice                                                         [jar]
+[INFO] frontrest                                                          [jar]
+[INFO] payment                                                            [jar]
+[INFO] order                                                              [jar]
+[INFO] 
+[INFO] --------------------------< com.example:demo >--------------------------
+[INFO] Building demo 0.0.1-SNAPSHOT                                      [1/13]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ demo ---
+[INFO] 
+[INFO] --- spring-boot:4.0.3:repackage (repackage) @ demo ---
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ demo ---
+[INFO] Installing /Users/david/Desktop/SpringBoot/springboot-front-demo/demo/pom.xml to /Users/david/.m2/repository/com/example/demo/0.0.1-SNAPSHOT/demo-0.0.1-SNAPSHOT.pom
+[INFO] 
+[INFO] ------------------------< com.example:product >-------------------------
+[INFO] Building product 0.0.1-SNAPSHOT                                   [2/13]
+[INFO]   from product/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ product ---
+[INFO] Deleting /Users/david/Desktop/SpringBoot/springboot-front-demo/demo/product/target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ product ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.14.0:compile (default-compile) @ product ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 13 source files with javac [debug parameters release 21] to target/classes

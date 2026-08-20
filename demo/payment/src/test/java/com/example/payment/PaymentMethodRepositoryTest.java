@@ -1,7 +1,8 @@
-package com.example.product;
+package com.example.payment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -12,9 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -24,9 +22,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.example.product.model.Product;
-import com.example.product.repository.ProductRepository;
-
+import com.example.payment.enums.PaymentMethodType;
+import com.example.payment.model.PaymentMethod;
+import com.example.payment.repository.PaymentMethodRepository;
 
 @DataJpaTest
 @Testcontainers
@@ -34,8 +32,8 @@ import com.example.product.repository.ProductRepository;
 @ContextConfiguration(classes = TestApplication.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Sql(scripts = "/clean-db.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-@DisplayName("ProductRepository — Integration Tests")
-public class ProductRepositoryTest {
+@DisplayName("PaymentMethodRepository — Integration Tests")
+public class PaymentMethodRepositoryTest {
 	@Container
 	static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
 	    .withDatabaseName("ecommerce_test")
@@ -54,63 +52,72 @@ public class ProductRepositoryTest {
 	static {
 	    postgres.start(); // Guarantees container starts BEFORE Spring Context initialization
 	}
+	@Autowired PaymentMethodRepository paymentMethodRepository;
 	@Autowired TestEntityManager em;
-	@Autowired ProductRepository productRepository;
 	
-	private Product product;
+	private PaymentMethod paymentMethod;
 	
-	@BeforeEach()
+	@BeforeEach
 	void setUp() {
 		
-		product = new Product();
-		product.setName("Name");
-		product.setSku("Sku");
-		product.setPrice(100D);
-		
-		em.persistAndFlush(product);
-		
+		paymentMethod = new PaymentMethod();
+		//paymentMethod.setId(1L);
+		paymentMethod.setName("COD");
+		paymentMethod.setDescription("Paiement à la livraison");
+		paymentMethod.setType(PaymentMethodType.COD);
+		paymentMethod.setDisplayOrder(0);
+		paymentMethod.setEnabled(true);
+		em.persistAndFlush(paymentMethod);
 		em.clear();
-		
 	}
+	
 	@Nested
 	@DisplayName("Recherches simples")
-	class FindTests {
+	class FindTests{
 		
 		@Test
-		@DisplayName("findBySku - found")
-		void findBySku_found() {
+		@DisplayName("findByType - found")
+		void findByType_found() {
 			
-			Optional<Product> p = productRepository.findBySku("Sku");
-			assertThat(p.isPresent());
-			assertThat(p.get().getName()).isEqualTo("Name");
+			Optional<PaymentMethod> paymentMethod = paymentMethodRepository.findByType(PaymentMethodType.COD);
 			
+			assertThat(paymentMethod).isNotEmpty();
+			assertThat(paymentMethod.get().getType()).isEqualTo(PaymentMethodType.COD);
+			assertThat(paymentMethod.get().getName()).isEqualTo("COD");
 		}
 		@Test
-		@DisplayName("findBySku - notfound")
-		void findBySku_notfound() {
+		@DisplayName("findByType - not found")
+		void findByType_notfound() {
 			
-			Optional<Product> p = productRepository.findBySku("test");
-			assertThat(p.isEmpty());
+			Optional<PaymentMethod> paymentMethod = paymentMethodRepository.findByType(PaymentMethodType.CREDIT_CARD);
 			
+			assertThat(paymentMethod).isEmpty();
+		}
+		
+		@Test
+		@DisplayName("findByEnabledOrderByDisplayOrder - found") 
+		void findByEnabledOrderByDisplayOrder_found() {	
+			List<PaymentMethod> paymentMethods = paymentMethodRepository.findByEnabledOrderByDisplayOrder(true);
+			
+			assertThat(paymentMethods).isNotEmpty();
+			assertThat(paymentMethods).hasSize(1);
 		}
 		@Test
-		@DisplayName("findWithFilters - found")
-		void findWithFilters_found() {
+		@DisplayName("findByEnabledOrderByDisplayOrder - notfound") 
+		void findByEnabledOrderByDisplayOrder_notfound() {	
+			List<PaymentMethod> paymentMethods = paymentMethodRepository.findByEnabledOrderByDisplayOrder(false);
 			
-			Pageable pageable = PageRequest.of(0, 10);
-			Page<Product> page = productRepository.findWithFilters("Name", 50D, 150D, pageable);
-			assertThat(page).hasSize(1);
-			assertThat(page.getContent().get(0).getName()).isEqualTo("Name");
-			
+			assertThat(paymentMethods).isEmpty();
 		}
+		
 		@Test
-		@DisplayName("findWithFilters - notfound")
-		void findWithFilters_notfound() {
+		@DisplayName("findAllByOrderByDisplayOrder - found")
+		void findAllByOrderByDisplayOrder_found() {
 			
-			Pageable pageable = PageRequest.of(0, 10);
-			Page<Product> page = productRepository.findWithFilters("Name2", 50D, 150D, pageable);
-			assertThat(page).isEmpty();
+			List<PaymentMethod> paymentMethods = paymentMethodRepository.findAllByOrderByDisplayOrder();
 			
+			assertThat(paymentMethods).isNotEmpty();
+			assertThat(paymentMethods).hasSize(1);
 		}
 	}
 }

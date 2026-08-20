@@ -60,19 +60,27 @@ public interface ProductStockRepository extends JpaRepository<ProductStock, Long
     @Query("SELECT ps FROM ProductStock ps WHERE ps.status = :status")
     Page<ProductStock> findByStatusPaginated(@Param("status") String status, Pageable pageable);
     
-    @Query("SELECT " +
-            "ps.productId AS productId, " +
-            "ps.warehouseId AS warehouseId, " +
-            "w.name AS warehouseName, " +
-            "w.code AS warehouseCode, " +
-            "ps.quantity AS quantity, " +
-            "ps.minimumStock AS minimumStock, " +
-            "CAST(ps.status AS STRING) AS status, " +
-            "CASE WHEN ps.quantity > 0 THEN true ELSE false END AS inStock " +
-            "FROM ProductStock ps " +
-            "LEFT JOIN Warehouse w ON ps.warehouseId = w.id " +
-            "WHERE (:warehouseId IS NULL OR ps.warehouseId = :warehouseId) AND " +
-            "(:status IS NULL OR ps.status = :status)")
+    @Query(value = """
+    	    SELECT 
+    	        ps.product_id AS productId, 
+    	        ps.warehouse_id AS warehouseId, 
+    	        w.name AS warehouseName, 
+    	        w.code AS warehouseCode, 
+    	        ps.quantity AS quantity, 
+    	        ps.minimum_stock AS minimumStock, 
+    	        CAST(ps.status AS VARCHAR) AS status, 
+    	        CASE WHEN ps.quantity > 0 THEN true ELSE false END AS inStock 
+    	    FROM product_stocks ps 
+    	    LEFT JOIN warehouses w ON ps.warehouse_id = w.id 
+    	    WHERE (:warehouseId IS NULL OR ps.warehouse_id = :warehouseId) 
+    	      AND (:status IS NULL OR ps.status = :status)
+    	    """, 
+    	    countQuery = """
+    	    SELECT count(*) FROM product_stocks ps 
+    	    WHERE (:warehouseId IS NULL OR ps.warehouse_id = :warehouseId) 
+    	      AND (:status IS NULL OR ps.status = :status)
+    	    """,
+    	    nativeQuery = true)
      Page<ProductStockWithWarehouseProjection> filterStocksWithWarehouse(
          @Param("warehouseId") Long warehouseId,
          @Param("status") StockStatus status,
