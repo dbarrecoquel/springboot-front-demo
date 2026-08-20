@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Méthodes de Paiement</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="container mt-5 mb-5">
+        <!-- En-tête -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="bi bi-credit-card"></i> Méthodes de Paiement</h2>
+            </div>
+            <div class="gap-2">
+                <a href="/payment-methods/create" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Créer une méthode
+                </a>
+                <a href="/" class="btn btn-secondary">← Retour</a>
+            </div>
+        </div>
+        
+        <!-- Alerts -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> [[${success}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-circle"></i> [[${error}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        
+        <!-- Tableau -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Icône</th>
+                        <th>Nom</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Ordre</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="method : ${paymentMethods}">
+                        <td>
+                            <i th:class="'bi ' + ${method.icon}"></i>
+                        </td>
+                        <td>
+                            <strong th:text="${method.name}"></strong>
+                        </td>
+                        <td>
+                            <span class="badge bg-info" th:text="${method.type}"></span>
+                        </td>
+                        <td>
+                            <small th:text="${method.description ?: '—'}"></small>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary" th:text="${method.displayOrder}"></span>
+                        </td>
+                        <td>
+                            <form th:action="@{/payment-methods/{id}/toggle(id=${method.id})}" 
+                                  method="post" style="display: inline;">
+                                <input type="hidden" name="enabled" th:value="${!method.enabled}">
+                                <button type="submit" class="btn btn-sm" 
+                                        th:classappend="${method.enabled} ? 'btn-success' : 'btn-danger'">
+                                    <i th:class="${method.enabled} ? 'bi bi-check-circle-fill' : 'bi bi-x-circle-fill'"></i>
+                                    <span th:text="${method.enabled} ? 'Activée' : 'Désactivée'"></span>
+                                </button>
+                            </form>
+                        </td>
+                        <td>
+                            <a th:href="@{/payment-methods/{id}/edit(id=${method.id})}" 
+                               class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil"></i> Éditer
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- Message si aucune méthode -->
+            <div th:if="${paymentMethods.isEmpty()}" class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Aucune méthode de paiement configurée.
+                <a href="/payment-methods/create" class="alert-link">Créer la première méthode</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
