@@ -13,7 +13,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
     "com.example.address",
     "com.example.shippingmethod",
     "com.example.shopping",
-    "com.example.events"
+    "com.example.events",
+    "com.example.payment",
+    "com.example.order"
     
 })
 @EntityScan({
@@ -24,6 +26,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
     "com.example.shippingmethod.model",
     "com.example.shopping.model",
     "com.example.events.model",
+    "com.example.payment.model",
+    "com.example.order.model"
 })
 @EnableJpaRepositories({
     "com.example.product.repository",
@@ -32,7 +36,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
     "com.example.address.repository",
     "com.example.shopping.repository",
     "com.example.shippingmethod.repository",
-    "com.example.events.repository"
+    "com.example.events.repository",
+    "com.example.payment.repository",
+    "com.example.order.repository"
 })
 public class FrontOfficeApplication {
     public static void main(String[] args) {

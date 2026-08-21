@@ -189,6 +189,61 @@ public class ProductStockService {
         // Retourner une Page enrichie
         return new PageImpl<>(dtos, pageable, projectionsPage.getTotalElements());
 	 }
+	 /**
+	  * Vérifier si le stock est disponible pour un produit et une quantité dans un entrepôt
+	  */
+	 @Transactional(readOnly = true)
+	 public boolean hasStockInWarehouse(Long productId, Long warehouseId, Integer requiredQuantity) {
+	     try {
+	         Optional<ProductStock> stock = productStockRepository.findByProductIdAndWarehouseId(productId, warehouseId);
+	         
+	         if (stock.isEmpty()) {
+	             log.warn("Pas de stock trouvé pour produit {} dans entrepôt {}", productId, warehouseId);
+	             return false;
+	         }
+	         
+	         ProductStock productStock = stock.get();
+	         boolean hasStock = productStock.getQuantity() >= requiredQuantity;
+	         
+	         log.info("Vérification stock | Produit: {} | Entrepôt: {} | Quantité requise: {} | Disponible: {} | Résultat: {}",
+	             productId, warehouseId, requiredQuantity, productStock.getQuantity(), hasStock);
+	         
+	         return hasStock;
+	     } catch (Exception e) {
+	         log.error("Erreur lors de la vérification du stock: {}", e.getMessage());
+	         return false;
+	     }
+	 }
+
+	 /**
+	  * Réserver le stock pour une commande
+	  */
+	 @Transactional
+	 public void reserveStock(Long productId, Long warehouseId, Integer quantity) {
+	     Optional<ProductStock> stock = productStockRepository.findByProductIdAndWarehouseId(productId, warehouseId);
+	     
+	     if (stock.isPresent()) {
+	         ProductStock productStock = stock.get();
+	         productStock.setQuantity(productStock.getQuantity() - quantity);
+	         
+	         // Mettre à jour le statut
+	         if (productStock.getQuantity() == 0) {
+	             productStock.setStatus(StockStatus.OUT_OF_STOCK);
+	         } else if (productStock.getQuantity() <= productStock.getMinimumStock()) {
+	             productStock.setStatus(StockStatus.LOW_STOCK);
+	         } else {
+	             productStock.setStatus(StockStatus.AVAILABLE);
+	         }
+	         
+	         productStockRepository.save(productStock);
+	         
+	         log.info("Stock réservé | Produit: {} | Entrepôt: {} | Quantité: {}", 
+	             productId, warehouseId, quantity);
+	     }
+	 }
+	 /**
+	  * Réserver le stock pour une commande
+	  */
 	 private ProductStockDto projectionToDto(ProductStockWithWarehouseProjection projection) {
 	        return ProductStockDto.builder()
 	            .productId(projection.getProductId())

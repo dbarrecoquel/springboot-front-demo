@@ -6,19 +6,27 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.example.shippingmethod.model.ShippingMethod;
+import com.example.shippingmethod.service.CarrierServiceService;
 import com.example.shippingmethod.service.ShippingMethodService;
 import com.example.shopping.model.Basket;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class BasketCalculationService {
 
 	private final ProductLineItemService lineItemService;
 	private final ShippingMethodService shippingMethodService;
+	private final CarrierServiceService carrierServiceService;
 	
-	public BasketCalculationService(ProductLineItemService pliService, ShippingMethodService shippingMethodService) {
+	public BasketCalculationService(ProductLineItemService pliService, 
+									ShippingMethodService shippingMethodService,
+									CarrierServiceService carrierServiceService) {
 		
 		this.lineItemService = pliService;
 		this.shippingMethodService = shippingMethodService;
+		this.carrierServiceService = carrierServiceService;
 	}
 	
 	public Map<String,Double> calculateBasketTotals(Basket basket){
@@ -26,7 +34,8 @@ public class BasketCalculationService {
 		
 		Double subTotal = calculateLineItemsTotal(totals, basket);
 		Double shippingTotal = calculateShippingTotal(totals, basket);
-		Double total = subTotal + shippingTotal;
+		Double carrierTotal = calculateCarrierServiceTotal(totals, basket);
+		Double total = subTotal + shippingTotal + carrierTotal;
 		
 		totals.put("total", total);
 		
@@ -55,5 +64,23 @@ public class BasketCalculationService {
 		
 		return shippingCost;
 		
+	}
+	public Double calculateCarrierServiceTotal(Map<String, Double> totals, Basket basket) {
+		
+		Double carrierCost = 0.0;
+		if (basket.getCarrierServiceId() != null) {
+            try {
+                var carrierServiceDto = carrierServiceService.getServiceDtoById(basket.getCarrierServiceId());
+                if (carrierServiceDto.isPresent()) {
+                	carrierCost = carrierServiceDto.get().getCost();
+                   
+                }
+            } catch (Exception e) {
+                log.warn("Impossible de récupérer le coût de livraison: {}", e.getMessage());
+            }
+        }
+		totals.put("carrierCost", carrierCost);
+		
+		return carrierCost;
 	}
 }

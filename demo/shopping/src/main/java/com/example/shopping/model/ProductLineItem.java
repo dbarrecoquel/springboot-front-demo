@@ -1,5 +1,7 @@
 package com.example.shopping.model;
 
+import java.time.LocalDateTime;
+
 import com.example.product.model.Product;
 import jakarta.persistence.*;
 
@@ -31,6 +33,11 @@ public class ProductLineItem {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id", insertable = false, updatable = false)
     private Product product;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
     
     // Constructors
     public ProductLineItem() {}
@@ -103,4 +110,20 @@ public class ProductLineItem {
     public Double getSubtotal() {
         return unitPrice * quantity;
     }
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
 }

@@ -1,10 +1,13 @@
 package com.example.frontoffice.config;
 
+import com.example.shopping.model.Basket;
 import com.example.shopping.service.BasketService;
 import com.example.user.model.User;
 import com.example.user.repository.UserRepository;
 import com.example.user.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -20,6 +23,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 @Configuration
 @EnableWebSecurity
+@Slf4j
 public class SecurityConfig {
     
     private final UserRepository userRepository;
@@ -42,6 +46,7 @@ public class SecurityConfig {
                                "/register", "/login", "/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers("/basket/**").permitAll()
                 .requestMatchers("/profile/**", "/addresses/**").authenticated()
+                .requestMatchers("/checkout/**").authenticated()
                 .anyRequest().permitAll()
             )
             .formLogin(form -> form
@@ -58,7 +63,12 @@ public class SecurityConfig {
             )
             .sessionManagement(session -> session
                 .sessionFixation().none() // Ne pas changer le session ID
-            );
+            )
+            .csrf(csrf -> csrf
+                    .csrfTokenRepository(
+                        new org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository()
+                    )
+                );
         
         return http.build();
     }
@@ -66,32 +76,32 @@ public class SecurityConfig {
     @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
         return (request, response, authentication) -> {
-            System.out.println("🔍 AuthenticationSuccessHandler déclenché");
-            
+            log.info("AuthenticationSuccessHandler déclenché");
+
             String email = authentication.getName();
-            System.out.println("📧 Email utilisateur: " + email);
-            
-            User user = userService.findByEmail(email).orElse(null);
-            
-            if (user != null) {
-                System.out.println("👤 Utilisateur trouvé: " + user.getFullName() + " (ID: " + user.getId() + ")");
+            log.info("Email utilisateur: {}", email);
+
+            try {
+                User user = userService.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
                 
+                log.info("Utilisateur trouvé: {} (ID: {})", user.getFullName(), user.getId());
+
                 HttpSession session = request.getSession();
                 String sessionId = session.getId();
-                System.out.println("🔑 Session ID: " + sessionId);
+                log.info("Session ID: {}", sessionId);
+
+                // ✅ FUSIONNER LES PANIERS
+                Basket mergedBasket = basketService.mergeBaskets(user.getId(), sessionId);
                 
-                try {
-                    basketService.mergeBaskets(user.getId(), sessionId);
-                    session.setAttribute("message", "Bienvenue " + user.getFirstName() + " !");
-                    System.out.println("✅ Panier fusionné pour l'utilisateur: " + user.getEmail());
-                } catch (Exception e) {
-                    System.err.println("❌ Erreur lors de la fusion du panier: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            } else {
-                System.err.println("❌ Utilisateur non trouvé pour l'email: " + email);
+                session.setAttribute("message", "Bienvenue " + user.getFirstName() + " !");
+                log.info("Panier fusionné pour l'utilisateur: {} | Panier ID: {}", user.getEmail(), mergedBasket.getId());
+
+            } catch (Exception e) {
+                log.error("Erreur lors de la fusion du panier: {}", e.getMessage());
+                e.printStackTrace();
             }
-            
+
             response.sendRedirect("/");
         };
     }

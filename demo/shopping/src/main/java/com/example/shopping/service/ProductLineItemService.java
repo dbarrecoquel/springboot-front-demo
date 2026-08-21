@@ -2,14 +2,19 @@ package com.example.shopping.service;
 
 import com.example.shopping.model.ProductLineItem;
 import com.example.shopping.repository.ProductLineItemRepository;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @Transactional
+@Slf4j
 public class ProductLineItemService {
     
     private final ProductLineItemRepository lineItemRepository;
@@ -22,16 +27,42 @@ public class ProductLineItemService {
         return lineItemRepository.findByBasketId(basketId);
     }
     
+    /**
+     * Ajouter ou mettre à jour un article dans le panier
+     */
+    @Transactional
     public ProductLineItem addOrUpdateLineItem(Long basketId, Long productId, Integer quantity, Double unitPrice) {
-        Optional<ProductLineItem> existingItem = lineItemRepository.findByBasketIdAndProductId(basketId, productId);
         
-        if (existingItem.isPresent()) {
-            ProductLineItem item = existingItem.get();
-            item.setQuantity(item.getQuantity() + quantity);
-            return lineItemRepository.save(item);
-        } else {
-            ProductLineItem newItem = new ProductLineItem(basketId, productId, quantity, unitPrice);
-            return lineItemRepository.save(newItem);
+        try {
+            // Chercher si l'article existe déjà dans le panier
+            Optional<ProductLineItem> existingItem = lineItemRepository.findByBasketIdAndProductId(basketId, productId);
+            
+            if (existingItem.isPresent()) {
+                // Mettre à jour la quantité
+                ProductLineItem item = existingItem.get();
+                item.setQuantity(item.getQuantity() + quantity);
+                item.setUpdatedAt(LocalDateTime.now());
+                
+                log.info("Article mis à jour: Panier {} | Produit {} | Nouvelle quantité: {}", 
+                    basketId, productId, item.getQuantity());
+                
+                return lineItemRepository.save(item);
+            } else {
+                // Créer un nouvel article
+                ProductLineItem newItem = new ProductLineItem();
+                newItem.setBasketId(basketId);
+                newItem.setProductId(productId);
+                newItem.setQuantity(quantity);
+                newItem.setUnitPrice(unitPrice);
+                
+                log.info("Article ajouté: Panier {} | Produit {} | Quantité: {}", 
+                    basketId, productId, quantity);
+                
+                return lineItemRepository.save(newItem);
+            }
+        } catch (Exception e) {
+            log.error("Erreur ajout/mise à jour article: {}", e.getMessage());
+            throw new RuntimeException("Erreur ajout article: " + e.getMessage());
         }
     }
     

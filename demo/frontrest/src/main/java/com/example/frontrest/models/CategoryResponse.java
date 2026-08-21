@@ -2,8 +2,8 @@ package com.example.frontrest.models;
 
 
 import com.example.catalog.model.Category;
+import com.example.product.dto.ProductDto;
 import com.example.catalog.dto.CategoryDto;
-import com.example.product.model.dto.ProductDto;
 
 import java.util.List;
 
