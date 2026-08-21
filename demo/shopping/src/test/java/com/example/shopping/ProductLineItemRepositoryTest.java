@@ -76,7 +76,6 @@ public class ProductLineItemRepositoryTest {
 		em.persistAndFlush(product);
 		
 		productLineItem = new ProductLineItem();
-		productLineItem.setBasket(basket);
 		productLineItem.setBasketId(basket.getId());
 		productLineItem.setProduct(product);
 		productLineItem.setProductId(product.getId());

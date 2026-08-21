@@ -25,10 +25,7 @@ public class ProductLineItem {
     @Column(nullable = false)
     private Double unitPrice; // Prix au moment de l'ajout au panier
     
-    // Relation pour faciliter les requêtes
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "basket_id", insertable = false, updatable = false)
-    private Basket basket;
+  
     
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id", insertable = false, updatable = false)
@@ -90,14 +87,7 @@ public class ProductLineItem {
         this.unitPrice = unitPrice;
     }
     
-    public Basket getBasket() {
-        return basket;
-    }
-    
-    public void setBasket(Basket basket) {
-        this.basket = basket;
-    }
-    
+   
     public Product getProduct() {
         return product;
     }

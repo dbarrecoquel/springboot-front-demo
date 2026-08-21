@@ -1,6 +1,8 @@
 package com.example.shopping.service;
 
+import com.example.shopping.model.Basket;
 import com.example.shopping.model.ProductLineItem;
+import com.example.shopping.repository.BasketRepository;
 import com.example.shopping.repository.ProductLineItemRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +20,10 @@ import java.util.Optional;
 public class ProductLineItemService {
     
     private final ProductLineItemRepository lineItemRepository;
-    
-    public ProductLineItemService(ProductLineItemRepository lineItemRepository) {
+    private final BasketRepository basketRepository;
+    public ProductLineItemService(ProductLineItemRepository lineItemRepository, BasketRepository basketRepository) {
         this.lineItemRepository = lineItemRepository;
+        this.basketRepository = basketRepository;
     }
     
     public List<ProductLineItem> getLineItemsByBasketId(Long basketId) {
@@ -30,6 +33,7 @@ public class ProductLineItemService {
     /**
      * Ajouter ou mettre à jour un article dans le panier
      */
+   
     @Transactional
     public ProductLineItem addOrUpdateLineItem(Long basketId, Long productId, Integer quantity, Double unitPrice) {
         
@@ -54,6 +58,8 @@ public class ProductLineItemService {
                 newItem.setProductId(productId);
                 newItem.setQuantity(quantity);
                 newItem.setUnitPrice(unitPrice);
+                newItem.setCreatedAt(LocalDateTime.now());
+                newItem.setUpdatedAt(LocalDateTime.now());
                 
                 log.info("Article ajouté: Panier {} | Produit {} | Quantité: {}", 
                     basketId, productId, quantity);
@@ -62,6 +68,7 @@ public class ProductLineItemService {
             }
         } catch (Exception e) {
             log.error("Erreur ajout/mise à jour article: {}", e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Erreur ajout article: " + e.getMessage());
         }
     }
@@ -104,8 +111,18 @@ public class ProductLineItemService {
         lineItemRepository.deleteById(lineItemId);
     }
     
+    /**
+     * Vider tous les articles d'un panier
+     */
+ 
     public void clearBasket(Long basketId) {
-        lineItemRepository.deleteByBasketId(basketId);
+        try {
+            lineItemRepository.deleteByBasketId(basketId);
+            log.info("Panier vidé: {}", basketId);
+        } catch (Exception e) {
+            log.error("Erreur suppression articles: {}", e.getMessage());
+            throw new RuntimeException("Erreur vidage panier: " + e.getMessage());
+        }
     }
     
     public Double calculateBasketTotal(Long basketId) {
@@ -121,4 +138,5 @@ public class ProductLineItemService {
                 .mapToInt(ProductLineItem::getQuantity)
                 .sum();
     }
+    
 }

@@ -108,25 +108,19 @@ public class BasketService {
             .orElseGet(() -> createBasket(userId, null));
     }
     
-    /**
-     * Fusionne le panier de session avec le panier utilisateur lors de la connexion
-     */
-    /**
-     * Fusionner le panier de session (utilisateur non authentifié) avec le panier utilisateur (après authentification)
-     */
     @Transactional
     public Basket mergeBaskets(Long userId, String sessionId) {
         log.info("Fusion panier - UserID: {} | SessionID: {}", userId, sessionId);
         
         try {
+            // ÉTAPE 1 : Chercher le panier de session
             Optional<Basket> sessionBasketOpt = basketRepository.findBySessionId(sessionId);
-            
-            log.info("Panier de session trouvé avec sessionId: {}", sessionId);
             
             if (sessionBasketOpt.isEmpty()) {
                 log.warn("Aucun panier de session trouvé pour sessionId: {}", sessionId);
             }
             
+            // ÉTAPE 2 : Chercher ou créer un panier utilisateur ACTIF
             Optional<Basket> userBasketOpt = basketRepository.findByUserIdAndStatus(userId, STATUS_ACTIVE);
             
             Basket userBasket;
@@ -138,6 +132,7 @@ public class BasketService {
                 log.info("Nouveau panier utilisateur créé: {}", userBasket.getId());
             }
             
+            // ÉTAPE 3 : Fusionner les articles s'il y a un panier de session
             if (sessionBasketOpt.isPresent()) {
                 Basket sessionBasket = sessionBasketOpt.get();
                 
@@ -165,7 +160,11 @@ public class BasketService {
                     }
                 }
                 
-                // Supprimer le panier de session
+                // SUPPRIMER LES ARTICLES DU PANIER DE SESSION D'ABORD
+                lineItemService.clearBasket(sessionBasket.getId());
+                log.info("Articles du panier de session supprimés: {}", sessionBasket.getId());
+                
+                // PUIS SUPPRIMER LE PANIER DE SESSION
                 basketRepository.delete(sessionBasket);
                 log.info("Panier de session supprimé: {}", sessionBasket.getId());
                 
@@ -173,6 +172,7 @@ public class BasketService {
                 log.info("Aucun panier de session à fusionner");
             }
             
+            //  ÉTAPE 4 : Mettre à jour le sessionId du panier utilisateur
             userBasket.setSessionId(sessionId);
             userBasket.setUpdatedAt(LocalDateTime.now());
             basketRepository.save(userBasket);
