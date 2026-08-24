@@ -131,7 +131,13 @@ public class ProductLineItemService {
                 .mapToDouble(ProductLineItem::getSubtotal)
                 .sum();
     }
-    
+    public Integer countBasketItems(Long basketId) {
+        return lineItemRepository.findByBasketId(basketId).stream()
+            .mapToInt(ProductLineItem::getQuantity)
+            .sum();
+    }
+
+   
     public int getBasketItemCount(Long basketId) {
         List<ProductLineItem> items = getLineItemsByBasketId(basketId);
         return items.stream()

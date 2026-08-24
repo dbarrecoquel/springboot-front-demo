@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Detail Commande</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .order-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    </style>
+</head>
+<body>
+    
+    <div th:replace="~{fragments/navbar :: navbar(${rootCategories})}"></div>
+    <div class="container my-5">
+        
+        <!-- En-tête -->
+        <div class="mb-4">
+            <a href="/profile/orders" class="btn btn-secondary mb-3">← Retour aux commandes</a>
+            <h1><i class="bi bi-receipt"></i> Commande #<span th:text="${order?.orderNumber ?: 'N/A'}"></span></h1>
+        </div>
+        
+        <!-- Vérification données -->
+        <div th:if="${order == null}" class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i> Commande non trouvée
+        </div>
+        
+        <div th:if="${order != null}">
+            
+            <!-- Infos générales -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">Infos Commande</div>
+                        <div class="card-body">
+                            <p><strong>Numero:</strong> <span th:text="${order.orderNumber}"></span></p>
+                            <p><strong>Date:</strong> <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span></p>
+                            <p>
+                                <strong>Statut:</strong>
+                                <span th:if="${order.status == 'PENDING'}" class="badge bg-warning">En attente</span>
+                                <span th:if="${order.status == 'CONFIRMED'}" class="badge bg-info">Confirmee</span>
+                                <span th:if="${order.status == 'PROCESSING'}" class="badge bg-primary">Traitement</span>
+                                <span th:if="${order.status == 'SHIPPED'}" class="badge bg-info">Expediee</span>
+                                <span th:if="${order.status == 'DELIVERED'}" class="badge bg-success">Livree</span>
+                                <span th:if="${order.status == 'CANCELLED'}" class="badge bg-danger">Annulee</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">Paiement</div>
+                        <div class="card-body" th:if="${transaction != null}">
+                            <p><strong>Methode:</strong> <span th:text="${transaction.paymentMethod?.name ?: 'N/A'}"></span></p>
+                            <p><strong>Montant:</strong> <span th:text="${#numbers.formatDecimal(transaction.amount ?: 0, 1, 2)} + '€'"></span></p>
+                            <p>
+                                <strong>Statut:</strong>
+                                <span th:if="${transaction.status == 'PENDING'}" class="badge bg-warning">En attente</span>
+                                <span th:if="${transaction.status == 'COMPLETED'}" class="badge bg-success">Paye</span>
+                                <span th:if="${transaction.status == 'FAILED'}" class="badge bg-danger">Echoue</span>
+                            </p>
+                        </div>
+                        <div class="card-body" th:unless="${transaction != null}">
+                            <p class="text-muted">Aucune information de paiement</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Articles -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">Articles</div>
+                <div class="table-responsive" th:if="${orderItems != null and !orderItems.isEmpty()}">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Quantite</th>
+                                <th>Prix Unitaire</th>
+                                <th>Sous-total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${orderItems}">
+                                <!-- Produit -->
+                                <td th:text="${item.productName ?: 'N/A'}"></td>
+                                
+                                <!--  Quantité -->
+                                <td th:text="${item.quantity ?: 0}"></td>
+                                
+                                <!--  Prix Unitaire  -->
+                                <td th:text="${#numbers.formatDecimal(item.unitPrice ?: 0, 1, 2)} + '€'"></td>
+                                
+                                <!-- Sous-total  -->
+                                <td th:text="${#numbers.formatDecimal((item.quantity ?: 0) * (item.unitPrice ?: 0), 1, 2)} + '€'"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div th:unless="${orderItems != null and !orderItems.isEmpty()}" class="alert alert-info m-3">
+                    <i class="bi bi-info-circle"></i> Aucun article dans cette commande
+                </div>
+            </div>
+            
+            <!-- Totaux -->
+            <div class="row">
+                <div class="col-md-4 offset-md-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Sous-total:</span>
+                                <span th:text="${#numbers.formatDecimal(order.subtotal ?: 0, 1, 2)} + '€'"></span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Taxes (20%):</span>
+                                <span th:text="${#numbers.formatDecimal(order.tax ?: 0, 1, 2)} + '€'"></span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-3 pb-2 border-bottom">
+                                <span>Livraison:</span>
+                                <span th:text="${#numbers.formatDecimal(order.shippingCost ?: 0, 1, 2)} + '€'"></span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <strong>TOTAL TTC:</strong>
+                                <strong class="text-primary" th:text="${#numbers.formatDecimal(order.total ?: 0, 1, 2)} + '€'"></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

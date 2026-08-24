@@ -1,10 +1,16 @@
 package com.example.order.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "orders")
+@Builder
+@AllArgsConstructor
 public class Order {
     
     @Id
@@ -38,6 +44,19 @@ public class Order {
     @Column(name = "shipping_method_id")
     private Long shippingMethodId;
     
+    @Column(name = "warehouse_id")
+    private Long warehouseId;
+    
+    @Column(name = "carrier_service_id")
+    private Long carrierServiceId;
+   @Column(name = "estimated_delivery_date")
+   private LocalDate estimatedDeliveryDate;
+   
+   /**
+    * Date la plus tard de livraison (fin)
+    */
+   @Column(name = "latest_delivery_date")
+   private LocalDate latestDeliveryDate;
     @Column(nullable = false)
     private Double subtotal = 0.0;
     
@@ -179,6 +198,38 @@ public class Order {
 
 	public void setOrderNumber(String orderNumber) {
 		this.orderNumber = orderNumber;
+	}
+
+	public Long getWarehouseId() {
+		return warehouseId;
+	}
+
+	public void setWarehouseId(Long warehouseId) {
+		this.warehouseId = warehouseId;
+	}
+
+	public Long getCarrierServiceId() {
+		return carrierServiceId;
+	}
+
+	public void setCarrierServiceId(Long carrierServiceId) {
+		this.carrierServiceId = carrierServiceId;
+	}
+
+	public LocalDate getEstimatedDeliveryDate() {
+		return estimatedDeliveryDate;
+	}
+
+	public void setEstimatedDeliveryDate(LocalDate estimatedDeliveryDate) {
+		this.estimatedDeliveryDate = estimatedDeliveryDate;
+	}
+
+	public LocalDate getLatestDeliveryDate() {
+		return latestDeliveryDate;
+	}
+
+	public void setLatestDeliveryDate(LocalDate latestDeliveryDate) {
+		this.latestDeliveryDate = latestDeliveryDate;
 	}
 
 	

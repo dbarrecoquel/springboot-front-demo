@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mes Commandes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .order-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    </style>
+</head>
+<body>
+    
+    <div th:replace="~{fragments/navbar :: navbar(${rootCategories})}"></div>
+    <div class="container my-5">
+        
+        <!-- En-tête -->
+        <div class="order-header text-white p-5 rounded mb-4">
+            <h1><i class="bi bi-receipt"></i> Mes Commandes</h1>
+            <p class="mb-0">Historique de vos achats</p>
+        </div>
+        
+        <a href="/profile" class="btn btn-secondary mb-3">← Retour au profil</a>
+        
+        <!-- Tableau des commandes -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Numero</th>
+                        <th>Date</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="order : ${orders}">
+                        <td>
+                            <strong th:text="${order.orderNumber}"></strong>
+                        </td>
+                        <td>
+                            <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                        </td>
+                        <td>
+                            <strong th:text="${#numbers.formatDecimal(order.total, 1, 2)} + '€'"></strong>
+                        </td>
+                        <td>
+                            <span th:if="${order.status == 'PENDING'}" class="badge bg-warning">
+                                <i class="bi bi-hourglass"></i> En attente
+                            </span>
+                            <span th:if="${order.status == 'CONFIRMED'}" class="badge bg-info">
+                                <i class="bi bi-check-circle"></i> Confirmee
+                            </span>
+                            <span th:if="${order.status == 'PROCESSING'}" class="badge bg-primary">
+                                <i class="bi bi-gear"></i> Traitement
+                            </span>
+                            <span th:if="${order.status == 'SHIPPED'}" class="badge bg-info">
+                                <i class="bi bi-truck"></i> Expediee
+                            </span>
+                            <span th:if="${order.status == 'DELIVERED'}" class="badge bg-success">
+                                <i class="bi bi-check-circle-fill"></i> Livree
+                            </span>
+                            <span th:if="${order.status == 'CANCELLED'}" class="badge bg-danger">
+                                <i class="bi bi-x-circle"></i> Annulee
+                            </span>
+                        </td>
+                        <td>
+                            <a th:href="@{/profile/orders/{id}(id=${order.id})}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-eye"></i> Voir
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- Message si aucune commande -->
+            <div th:if="${orders.isEmpty()}" class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Vous n'avez pas encore de commandes.
+                <a href="/catalog" class="alert-link">Decouvrir nos produits</a>
+            </div>
+        </div>
+        
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

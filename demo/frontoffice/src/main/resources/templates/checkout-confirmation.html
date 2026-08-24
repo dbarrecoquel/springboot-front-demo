@@ -76,7 +76,7 @@
                     </div>
                     <div class="info-row">
                         <span>Montant:</span>
-                        <strong th:text="'€' + ${#numbers.formatDecimal(transaction.amount, 1, 2)}"></strong>
+                        <strong th:text="${#numbers.formatDecimal(transaction.amount, 1, 2)} + '€'"></strong>
                     </div>
                     <div class="info-row">
                         <span>Statut:</span>
@@ -102,7 +102,7 @@
                 
                 <!-- Boutons -->
                 <div class="d-grid gap-2">
-                    <a href="/my-orders" class="btn btn-primary btn-lg">
+                    <a href="/profile" class="btn btn-primary btn-lg">
                         <i class="bi bi-receipt"></i> Voir mes Commandes
                     </a>
                     <a href="/" class="btn btn-outline-secondary">

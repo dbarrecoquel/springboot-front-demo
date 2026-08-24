@@ -93,6 +93,8 @@
             <!-- Colonne principale - Adresses -->
             <div class="col-lg-8">
                 <form th:action="@{/checkout/addresses}" method="post">
+                <input type="hidden" name="_csrf" 
+           				th:value="${_csrf.token}" />
                     <div class="row">
                         <!-- Colonne Adresse de Livraison -->
                         <div class="col-md-6 mb-4">
@@ -274,16 +276,16 @@
                             <strong th:text="${item.product.name}"></strong>
                             <div class="summary-item-details">
                                 Qté: <span th:text="${item.quantity}"></span> × 
-                                €<span th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2)}"></span>
+                                <span th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2)}"></span>€ 
                             </div>
                         </div>
-                        <span th:text="'€' + ${#numbers.formatDecimal(item.quantity * item.unitPrice, 1, 2)}"></span>
+                        <span th:text="${#numbers.formatDecimal(item.quantity * item.unitPrice, 1, 2)} + '€' "></span>
                     </div>
                     
                     <!-- Totaux -->
                     <div class="summary-total mt-3">
                         <span>TOTAL</span>
-                        <span class="summary-total-amount" th:text="'€' + ${#numbers.formatDecimal(total, 1, 2)}"></span>
+                        <span class="summary-total-amount" th:text="'${#numbers.formatDecimal(total, 1, 2)} + '€' "></span>
                     </div>
                     
                     <!-- Info supplémentaire -->

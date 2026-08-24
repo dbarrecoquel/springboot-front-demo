@@ -37,8 +37,9 @@
     </style>
 </head>
 <body>
-     <div th:replace="~{fragments/navbar :: navbar(${rootCategories})}"></div>
-  
+    
+    
+    <div th:replace="~{fragments/navbar :: navbar(${rootCategories})}"></div>
     <div class="container my-5">
          <div class="row mb-4">
             <div class="col-12">
@@ -81,7 +82,7 @@
                 
                 <!-- Formulaire -->
                 <form id="shippingForm" action="/checkout/shipping" method="post">
-                      <input type="hidden" name="_csrf" 
+                    <input type="hidden" name="_csrf" 
            				th:value="${_csrf.token}" />
                     <!-- Input hidden pour carrier service id -->
                     <input type="hidden" name="carrierServiceId" id="carrierServiceId" value="">
@@ -111,31 +112,31 @@
                             <div class="ms-3 text-end">
                                 <strong th:if="${estimate.freeShipping == true}" class="text-success">GRATUIT</strong>
                                 <strong th:unless="${estimate.freeShipping == true}" class="text-primary">
-                                    EUR <span th:text="${#numbers.formatDecimal(estimate.cost, 1, 2)}"></span>
+                                    <span th:text="${#numbers.formatDecimal(estimate.cost, 1, 2)}"></span>€
                                 </strong>
                             </div>
                         </div>
                         
                         <!-- Détails livraison -->
                         <div class="border-top pt-3 small text-muted">
-						    <div class="row">
-						        <div class="col-md-6">
-						            <i class="bi bi-calendar-event"></i>
-						            Livraison entre
-						            <br>
-						            <strong th:text="${#temporals.format(estimate.earliestDeliveryDate, 'dd/MM/yyyy')}"></strong>
-						            et
-						            <strong th:text="${#temporals.format(estimate.latestDeliveryDate, 'dd/MM/yyyy')}"></strong>
-						        </div>
-						        <div class="col-md-6" th:if="${estimate.estimatedDays}">
-						            <i class="bi bi-hourglass"></i>
-						            Environ <strong th:text="${estimate.estimatedDays}"></strong> jour(s)
-						        </div>
-						    </div>
-						    <div th:if="${estimate.processingInfo}" class="mt-2">
-						        <small th:text="${estimate.processingInfo}"></small>
-						    </div>
-						</div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <i class="bi bi-calendar-event"></i>
+                                    Livraison entre
+                                    <br>
+                                    <strong th:text="${#temporals.format(estimate.earliestDeliveryDate, 'dd/MM/yyyy')}"></strong>
+                                    et
+                                    <strong th:text="${#temporals.format(estimate.latestDeliveryDate, 'dd/MM/yyyy')}"></strong>
+                                </div>
+                                <div class="col-md-6" th:if="${estimate.estimatedDays}">
+                                    <i class="bi bi-hourglass"></i>
+                                    Environ <strong th:text="${estimate.estimatedDays}"></strong> jour(s)
+                                </div>
+                            </div>
+                            <div th:if="${estimate.processingInfo}" class="mt-2">
+                                <small th:text="${estimate.processingInfo}"></small>
+                            </div>
+                        </div>
                         
                         <!-- Input caché pour récupérer l'ID -->
                         <input type="hidden" class="carrier-id" th:value="${estimate.carrierServiceId}">
@@ -182,21 +183,24 @@
                     <div class="mb-2 small">
                         <div class="d-flex justify-content-between mb-2">
                             <span>Sous-total</span>
-                            <span th:text="${#numbers.formatDecimal(subtotal, 1, 2)}  + '€'"></span>
+                            <span th:text="${#numbers.formatDecimal(subtotal, 1, 2)} + '€'"></span>
                         </div>
-                        <div class="d-flex justify-content-between pb-2 border-bottom">
-                            <span>Taxe</span>
-                            <span th:text="${#numbers.formatDecimal(tax, 1, 2)}  + '€'"></span>
+                        
+                        <!-- ✅ TAXES -->
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Taxes (20%)</span>
+                            <span th:text="${#numbers.formatDecimal(tax, 1, 2)} + '€'"></span>
                         </div>
-                        <div class="d-flex justify-content-between mt-2 mb-3">
+                        
+                        <div class="d-flex justify-content-between mb-3 pb-2 border-bottom">
                             <span>Livraison</span>
                             <span id="selectedDeliveryInfo" class="text-muted">-</span>
                         </div>
                     </div>
                     
-                    <!-- TOTAL -->
-                    <div class="d-flex justify-content-between p-3 bg-light rounded border-top border-bottom">
-                        <strong>TOTAL</strong>
+                    <!-- TOTAL TTC -->
+                    <div class="d-flex justify-content-between p-3 bg-light rounded">
+                        <strong>TOTAL TTC</strong>
                         <strong class="text-primary" th:text="${#numbers.formatDecimal(total, 1, 2)} + '€'"></strong>
                     </div>
                 </div>
@@ -232,40 +236,26 @@
                 if (!carrierServiceId || carrierServiceId.trim() === '') {
                     e.preventDefault();
                     alert('Veuillez selectionner un mode de livraison');
-                    console.error('carrierServiceId vide');
                     return false;
                 }
                 
-                console.log('Soumission avec carrierServiceId: ' + carrierServiceId);
                 return true;
             });
             
-            /**
-             * Sélectionner une carte de livraison
-             */
             function selectDeliveryCard(card) {
                 const carrierServiceId = card.querySelector('.carrier-id').value;
-                
-                console.log('Selection: ' + carrierServiceId);
-                
-                // Remplir l'input hidden
                 carrierServiceIdInput.value = carrierServiceId;
                 
-                // Mettre à jour le style
                 deliveryCards.forEach(c => {
                     c.classList.remove('selected');
                 });
                 card.classList.add('selected');
                 
-                // Mettre à jour le résumé
                 updateDeliveryInfo(card);
             }
             
-            /**
-             * Mettre à jour les infos de livraison dans le résumé
-             */
             function updateDeliveryInfo(card) {
-                const cost = card.querySelector('.carrier-id').parentElement.querySelector('strong');
+                const cost = card.querySelector('.text-primary, .text-success');
                 const infoElement = document.getElementById('selectedDeliveryInfo');
                 
                 if (cost) {
