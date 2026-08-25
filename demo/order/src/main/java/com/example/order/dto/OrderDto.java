@@ -26,6 +26,8 @@ public class OrderDto {
     
     // Livraison
     private Long shippingMethodId;
+    private Long warehouseId;
+    private Long carrierServiceId;
     
     // Montants
     private Double subtotal;
@@ -42,4 +44,7 @@ public class OrderDto {
     // Métadonnées
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDate estimatedDeliveryDate;
+
+    private LocalDate latestDeliveryDate;
 }
