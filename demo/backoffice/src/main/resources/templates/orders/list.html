@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Commandes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .badge-pending { background-color: #ffc107 !important; }
+        .badge-confirmed { background-color: #0dcaf0 !important; }
+        .badge-processing { background-color: #0d6efd !important; }
+        .badge-shipped { background-color: #17a2b8 !important; }
+        .badge-delivered { background-color: #198754 !important; }
+        .badge-cancelled { background-color: #dc3545 !important; }
+    </style>
+</head>
+<body>
+    
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="container-fluid my-4">
+        
+        <!-- En-tête -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1><i class="bi bi-receipt"></i> Commandes</h1>
+                <p class="text-muted">Gestion des commandes clients</p>
+            </div>
+            <a href="/backoffice" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+        
+        <!-- Alerts -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle-fill"></i> [[${success}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle-fill"></i> [[${error}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        
+        <!-- Filtres et Recherche -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    
+                    <!-- Recherche -->
+                    <div class="col-md-6">
+                        <label class="form-label">Rechercher par numéro</label>
+                        <input type="text" name="search" class="form-control" 
+                               th:value="${search ?: ''}" placeholder="Ex: CMD-001">
+                    </div>
+                    
+                    <!-- Filtre statut -->
+                    <div class="col-md-4">
+                        <label class="form-label">Statut</label>
+                        <select name="status" class="form-select">
+                            <option value="">Tous les statuts</option>
+                            <option value="PENDING" th:selected="${status == 'PENDING'}">En attente</option>
+                            <option value="CONFIRMED" th:selected="${status == 'CONFIRMED'}">Confirmée</option>
+                            <option value="PROCESSING" th:selected="${status == 'PROCESSING'}">Traitement</option>
+                            <option value="SHIPPED" th:selected="${status == 'SHIPPED'}">Expédiée</option>
+                            <option value="DELIVERED" th:selected="${status == 'DELIVERED'}">Livrée</option>
+                            <option value="CANCELLED" th:selected="${status == 'CANCELLED'}">Annulée</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Boutons -->
+                    <div class="col-md-2 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1">
+                            <i class="bi bi-search"></i> Rechercher
+                        </button>
+                        <a href="/backoffice/orders" class="btn btn-secondary">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </a>
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+        
+        <!-- Tableau des commandes -->
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <strong>Total: <span th:text="${totalElements}"></span> commande(s)</strong>
+            </div>
+            
+            <div class="table-responsive" th:if="${!orders.isEmpty()}">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Numéro</th>
+                            <th>Client</th>
+                            <th>Date</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                            <th>Paiement</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="order : ${orders}">
+                            <!-- Numéro -->
+                            <td>
+                                <strong th:text="${order.orderNumber}"></strong>
+                            </td>
+                            
+                            <!-- Client -->
+                            <td>
+                                <small th:if="${order.userId}" th:text="'ID: ' + ${order.userId}"></small>
+                            </td>
+                            
+                            <!-- Date -->
+                            <td>
+                                <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                            </td>
+                            
+                            <!-- Montant -->
+                            <td>
+                                <strong th:text="|EUR ${#numbers.formatDecimal(order.total, 1, 2)}|"></strong>
+                            </td>
+                            
+                            <!-- Statut -->
+                            <td>
+                                <span th:if="${order.status == 'PENDING'}" class="badge badge-pending text-dark">
+                                    <i class="bi bi-hourglass"></i> En attente
+                                </span>
+                                <span th:if="${order.status == 'CONFIRMED'}" class="badge badge-confirmed text-dark">
+                                    <i class="bi bi-check-circle"></i> Confirmée
+                                </span>
+                                <span th:if="${order.status == 'PROCESSING'}" class="badge badge-processing">
+                                    <i class="bi bi-gear"></i> Traitement
+                                </span>
+                                <span th:if="${order.status == 'SHIPPED'}" class="badge badge-shipped">
+                                    <i class="bi bi-truck"></i> Expédiée
+                                </span>
+                                <span th:if="${order.status == 'DELIVERED'}" class="badge badge-delivered">
+                                    <i class="bi bi-check-circle-fill"></i> Livrée
+                                </span>
+                                <span th:if="${order.status == 'CANCELLED'}" class="badge badge-cancelled">
+                                    <i class="bi bi-x-circle"></i> Annulée
+                                </span>
+                            </td>
+                            
+                            <!-- Paiement -->
+                            <td>
+                                <span class="badge bg-success"><i class="bi bi-check"></i> Payée</span>
+                            </td>
+                            
+                            <!-- Actions -->
+                            <td>
+                                <a th:href="@{/orders/{id}(id=${order.id})}" 
+                                   class="btn btn-sm btn-primary" title="Voir le détail">
+                                    <i class="bi bi-eye"></i> Voir
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Message aucune commande -->
+            <div th:if="${orders.isEmpty()}" class="alert alert-info m-3">
+                <i class="bi bi-info-circle"></i> Aucune commande trouvée
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        <nav aria-label="Page navigation" class="mt-4" th:if="${totalPages > 1}">
+            <ul class="pagination justify-content-center">
+                
+                <!-- Première page -->
+                <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                    <a class="page-link" href="/backoffice/orders?page=0" th:if="${currentPage > 0}">
+                        <i class="bi bi-chevron-double-left"></i> Première
+                    </a>
+                    <span class="page-link" th:unless="${currentPage > 0}">
+                        <i class="bi bi-chevron-double-left"></i> Première
+                    </span>
+                </li>
+                
+                <!-- Précédent -->
+                <li class="page-item" th:classappend="${!hasPrevious ? 'disabled' : ''}">
+                    <a class="page-link" th:href="@{/backoffice/orders(page=${currentPage - 1})}" 
+                       th:if="${hasPrevious}">
+                        <i class="bi bi-chevron-left"></i> Précédent
+                    </a>
+                    <span class="page-link" th:unless="${hasPrevious}">
+                        <i class="bi bi-chevron-left"></i> Précédent
+                    </span>
+                </li>
+                
+                <!-- Pages numérotées -->
+                <li class="page-item" th:each="page : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${currentPage == page ? 'active' : ''}">
+                    <a class="page-link" th:href="@{/backoffice/orders(page=${page})}" 
+                       th:text="${page + 1}"></a>
+                </li>
+                
+                <!-- Suivant -->
+                <li class="page-item" th:classappend="${!hasNext ? 'disabled' : ''}">
+                    <a class="page-link" th:href="@{/backoffice/orders(page=${currentPage + 1})}" 
+                       th:if="${hasNext}">
+                        Suivant <i class="bi bi-chevron-right"></i>
+                    </a>
+                    <span class="page-link" th:unless="${hasNext}">
+                        Suivant <i class="bi bi-chevron-right"></i>
+                    </span>
+                </li>
+                
+                <!-- Dernière page -->
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                    <a class="page-link" th:href="@{/backoffice/orders(page=${totalPages - 1})}" 
+                       th:if="${currentPage < totalPages - 1}">
+                        Dernière <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                    <span class="page-link" th:unless="${currentPage < totalPages - 1}">
+                        Dernière <i class="bi bi-chevron-double-right"></i>
+                    </span>
+                </li>
+                
+            </ul>
+        </nav>
+        
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

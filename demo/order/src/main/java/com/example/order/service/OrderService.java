@@ -13,6 +13,9 @@ import com.example.shopping.repository.BasketRepository;
 import com.example.shopping.service.BasketService;
 import com.example.shopping.service.ProductLineItemService;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -195,7 +198,31 @@ public class OrderService {
             .map(mapper::toDto)
             .orElseThrow(() -> new RuntimeException("Commande non trouvée"));
     }
-    
+    /**
+     * Récupérer toutes les commandes paginées
+     */
+    @Transactional(readOnly = true)
+    public Page<Order> getAllOrdersPaginated(Pageable pageable) {
+        return orderRepository.findAll(pageable);
+    }
+
+    /**
+     * Rechercher les commandes par numéro
+     */
+    @Transactional(readOnly = true)
+    public Page<Order> searchOrdersByNumber(String orderNumber, Pageable pageable) {
+        return orderRepository.findByOrderNumberContainingIgnoreCase(orderNumber, pageable);
+    }
+
+    /**
+     * Récupérer les commandes par statut
+     */
+    @Transactional(readOnly = true)
+    public Page<Order> getOrdersByStatus(String status, Pageable pageable) {
+        return orderRepository.findByStatus(status, pageable);
+    }
+
+  
     /**
      * Obtenir le DTO détaillé avec items
      */

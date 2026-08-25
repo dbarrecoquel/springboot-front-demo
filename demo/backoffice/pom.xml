@@ -43,12 +43,22 @@
 		    </dependency>
 		    <dependency>
 		        <groupId>com.example</groupId>
+		        <artifactId>shopping</artifactId>
+		        <version>${project.version}</version>
+		    </dependency>
+		    <dependency>
+		        <groupId>com.example</groupId>
 		        <artifactId>shipping-method</artifactId>
 		        <version>${project.version}</version>
 		    </dependency>
 		    <dependency>
 		        <groupId>com.example</groupId>
 		        <artifactId>payment</artifactId>
+		        <version>${project.version}</version>
+		    </dependency>
+		     <dependency>
+		        <groupId>com.example</groupId>
+		        <artifactId>order</artifactId>
 		        <version>${project.version}</version>
 		    </dependency>
         <!-- Spring Boot Web -->
